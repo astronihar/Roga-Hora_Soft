@@ -19,13 +19,11 @@ nakshatras = [
     "Uttara Bhadrapada", "Revati"
 ]
 
-
 def decimal_to_dms(degree):
     d = int(degree)
     m = int((degree - d) * 60)
     s = round(((degree - d) * 60 - m) * 60)
     return f"{d}°{m}′{s}″"
-
 
 def get_astro_data(date_str, time_str, latitude, longitude):
     dt = datetime.datetime.strptime(f"{date_str} {time_str}", "%d-%m-%Y %H:%M")
@@ -98,104 +96,58 @@ def get_astro_data(date_str, time_str, latitude, longitude):
         'planets': planet_data
     }
 
-
-# def get_astro_data(date_str, time_str, latitude, longitude):
-#     dt = datetime.datetime.strptime(f"{date_str} {time_str}", "%d-%m-%Y %H:%M")
-#     utc_dt = dt - datetime.timedelta(hours=5, minutes=30)
-
-#     swe.set_sid_mode(swe.SIDM_LAHIRI)
-
-#     jd = swe.julday(
-#         utc_dt.year, utc_dt.month, utc_dt.day,
-#         utc_dt.hour + utc_dt.minute / 60 + utc_dt.second / 3600
-#     )
-
-#     cusps, ascmc = swe.houses_ex(jd, latitude, longitude, b'A', swe.FLG_SIDEREAL)
-#     asc_deg = ascmc[swe.ASC]
-#     asc_zodiac = int(asc_deg / 30)
-#     asc_nak = int(asc_deg / (360 / 27))
-#     asc_pada = int(((asc_deg % (360 / 27)) / (13.3333 / 4))) + 1
-
-#     asc_data = {
-#         'zodiac': zodiac_signs[asc_zodiac],
-#         'degree': round(asc_deg % 30, 5),
-#         'nakshatra': nakshatras[asc_nak],
-#         'pada': asc_pada
-#     }
-
-#     planets = {
-#         swe.SUN: 'Sun',
-#         swe.MOON: 'Moon',
-#         swe.MERCURY: 'Mercury',
-#         swe.VENUS: 'Venus',
-#         swe.MARS: 'Mars',
-#         swe.JUPITER: 'Jupiter',
-#         swe.SATURN: 'Saturn',
-#         swe.MEAN_NODE: 'Rahu'
-#     }
-
-#     planet_data = {}
-
-#     for code, name in planets.items():
-#         pos, _ = swe.calc(jd, code, swe.FLG_SIDEREAL)
-#         deg = pos[0]
-#         zodiac = int(deg / 30)
-#         nak = int(deg / (360 / 27))
-#         pada = int(((deg % (360 / 27)) / (13.3333 / 4))) + 1
-
-#         planet_data[name] = {
-#             'zodiac': zodiac_signs[zodiac],
-#             'degree': round(deg % 30, 5),
-#             'nakshatra': nakshatras[nak],
-#             'pada': pada
-#         }
-
-#         if name == 'Rahu':
-#             rahu_deg = deg
-
-#     # Ketu
-#     ketu_deg = (rahu_deg + 180) % 360
-#     ketu_zodiac = int(ketu_deg / 30)
-#     ketu_nak = int(ketu_deg / (360 / 27))
-#     ketu_pada = int(((ketu_deg % (360 / 27)) / (13.3333 / 4))) + 1
-
-#     planet_data['Ketu'] = {
-#         'zodiac': zodiac_signs[ketu_zodiac],
-#         'degree': round(ketu_deg % 30, 5),
-#         'nakshatra': nakshatras[ketu_nak],
-#         'pada': ketu_pada
-#     }
-
-#     return {
-#         'timestamp_ist': dt.strftime("%Y-%m-%d %H:%M"),
-#         'ascendant': asc_data,
-#         'planets': planet_data
-#     }
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
-    if request.method == 'POST':
-        try:
-            date_str = request.form.get('date')       # e.g. 29-12-2005
-            time_str = request.form.get('time')       # e.g. 03:21 (24hr format)
-            place = request.form.get('place')         # e.g. Ludhiana
+    return render_template('birth_form.html')
 
-            geolocator = Nominatim(user_agent="astro_locator")
-            location = geolocator.geocode(f"{place}, India")
+@app.route('/submit', methods=['POST'])
+def submit():
+    try:
+        date_str = request.form.get('birthdate')       # e.g. 29-12-2005
+        hour = request.form.get('hour')
+        minute = request.form.get('minute')
+        ampm = request.form.get('ampm')
+        state = request.form.get('state')
+        city = request.form.get('city')
 
-            if not location:
-                return render_template('index.html', error="Invalid place entered.")
+        time_str = f"{int(hour) % 12 + (12 if ampm == 'PM' else 0)}:{minute}"
+        place = f"{city}, {state}"
 
-            lat = location.latitude
-            lon = location.longitude
+        geolocator = Nominatim(user_agent="astro_locator")
+        location = geolocator.geocode(place)
 
-            data = get_astro_data(date_str, time_str, lat, lon)
-            return jsonify(data)
+        if not location:
+            return render_template('birth_form.html', error="Invalid place entered.")
 
-        except Exception as e:
-            return render_template('index.html', error=str(e))
+        lat = location.latitude
+        lon = location.longitude
 
-    return render_template('index.html')
+        data = get_astro_data(date_str, time_str, lat, lon)
+        return jsonify(data)
+
+    except Exception as e:
+        return render_template('birth_form.html', error=str(e))
+
+@app.route("/api/states")
+def api_states():
+    # This should be replaced with dynamic DB or CSV source
+    states = ["Punjab", "Maharashtra", "Karnataka", "Tamil Nadu"]
+    query = request.args.get("query", "").lower()
+    return jsonify({"suggestions": [s for s in states if query in s.lower()]})
+
+@app.route("/api/cities")
+def api_cities():
+    # Replace with filtered query from your database
+    state = request.args.get("state", "")
+    query = request.args.get("query", "").lower()
+    cities_by_state = {
+        "Punjab": ["Ludhiana", "Amritsar"],
+        "Maharashtra": ["Mumbai", "Pune"],
+        "Karnataka": ["Bangalore", "Mysore"],
+        "Tamil Nadu": ["Chennai", "Coimbatore"]
+    }
+    cities = cities_by_state.get(state, [])
+    return jsonify({"suggestions": [c for c in cities if query in c.lower()]})
 
 if __name__ == '__main__':
     app.run(debug=True)

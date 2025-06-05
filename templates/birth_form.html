@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Birth Details Form</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom right, #f9d423, #ff4e50); /* yellow-orange gradient */
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-box {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 8px 10px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #ff8c00;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e67e00;
+        }
+
+        ul.suggestions {
+            list-style-type: none;
+            padding: 0;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 10;
+            position: relative;
+        }
+
+        ul.suggestions li {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        ul.suggestions li:hover {
+            background-color: #f0f0f0;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-box">
+        <h1>Enter Birth Details</h1>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/submit">
+            <label>Birth Date:</label>
+            <input type="text" name="birthdate" placeholder="DD-MM-YYYY" required>
+
+            <label>Birth Time:</label>
+            <input type="number" name="hour" placeholder="HH" min="1" max="12" required>
+            <input type="number" name="minute" placeholder="MM" min="0" max="59" required>
+            <select name="ampm">
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
+
+            <label>State:</label>
+            <input type="text" id="state" name="state" autocomplete="off" required>
+            <ul id="state-suggestions" class="suggestions"></ul>
+
+            <label>City:</label>
+            <input type="text" id="city" name="city" autocomplete="off" required>
+            <ul id="city-suggestions" class="suggestions"></ul>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        function fetchSuggestions(inputId, listId, endpoint, extraParams = {}) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+
+            input.addEventListener("input", () => {
+                const query = input.value;
+                if (query.length < 2) {
+                    list.innerHTML = '';
+                    return;
+                }
+
+                const url = new URL(endpoint, window.location.origin);
+                url.searchParams.set("query", query);
+                for (const key in extraParams) {
+                    url.searchParams.set(key, extraParams[key]());
+                }
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        list.innerHTML = '';
+                        data.suggestions.forEach(item => {
+                            const li = document.createElement("li");
+                            li.textContent = item;
+                            li.onclick = () => {
+                                input.value = item;
+                                list.innerHTML = '';
+                            };
+                            list.appendChild(li);
+                        });
+                    });
+            });
+        }
+
+        fetchSuggestions("state", "state-suggestions", "/api/states");
+        fetchSuggestions("city", "city-suggestions", "/api/cities", {
+            state: () => document.getElementById("state").value
+        });
+    </script>
+</body>
+</html>
