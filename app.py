@@ -14,14 +14,6 @@ import os
 app = Flask(__name__)
 swe.set_ephe_path('.')
 
-# # Extract city-state dataset from ZIP file if not already extracted
-# def extract_dataset(zip_path, extract_to='.'):
-#     if not os.path.exists(extract_to + '/cities.csv'):
-#         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-#             zip_ref.extractall(extract_to)
-
-# # Extract dataset
-# extract_dataset("cities.zip")  # Adjust path if needed
 
 # Load city-state dataset
 city_df = pd.read_csv("Indian_Cities_Geo_Data.csv")  # Dataset must have columns: state, city
@@ -105,11 +97,46 @@ def get_astro_data(date_str, time_str, latitude, longitude):
         'pada': ketu_pada
     }
 
+    # return {
+    #     'timestamp_ist': dt.strftime("%Y-%m-%d %H:%M"),
+    #     'ascendant': asc_data,
+    #     'planets': planet_data
+    # }
+
+     
+    # Collect absolute degrees for divisional use
+    absolute_degrees = {}
+    for code, name in planets.items():
+        pos, _ = swe.calc(jd, code, swe.FLG_SIDEREAL)
+        absolute_degrees[name] = pos[0]
+
+    absolute_degrees['Ketu'] = ketu_deg
+    asc_absolute_deg = ascmc[swe.ASC]
+
+    # Compute divisionals
+    d3_chart = get_d3_chart(absolute_degrees, asc_absolute_deg)
+    d9_chart = get_d9_chart(absolute_degrees, asc_absolute_deg)
+    d6_chart = get_d6_chart(absolute_degrees, asc_absolute_deg)
+    d30_chart = get_d30_chart(absolute_degrees, asc_absolute_deg)
+    d60_chart = get_d60_chart(absolute_degrees, asc_absolute_deg)
+
     return {
         'timestamp_ist': dt.strftime("%Y-%m-%d %H:%M"),
         'ascendant': asc_data,
-        'planets': planet_data
+        'planets': planet_data,
+        'divisionals': {
+            'D3': d3_chart,
+            'D9': d9_chart,
+            'D6': d6_chart,
+            'D30': d30_chart,
+            'D60': d60_chart
+        }
     }
+
+
+
+
+
 
 @app.route('/')
 def index():
