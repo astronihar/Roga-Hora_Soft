@@ -63,4 +63,4 @@ def delete_user(user_id):
 
 #Edits ----------------------------------- I can do all my edits here :) 
 
-
+delete_user(15)
