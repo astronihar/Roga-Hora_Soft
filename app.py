@@ -2,10 +2,14 @@ from flask import Flask, render_template, request, jsonify
 from geopy.geocoders import Nominatim
 import swisseph as swe
 import datetime
+import sqlite3
+import hashlib
+import json
 
 app = Flask(__name__)
 swe.set_ephe_path('.')  # Set ephemeris path
 
+# Zodiac and Nakshatra names
 zodiac_signs = [
     'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
     'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
@@ -19,12 +23,14 @@ nakshatras = [
     "Uttara Bhadrapada", "Revati"
 ]
 
+# Convert decimal degrees to degrees, minutes, seconds
 def decimal_to_dms(degree):
     d = int(degree)
     m = int((degree - d) * 60)
     s = round(((degree - d) * 60 - m) * 60)
     return f"{d}°{m}′{s}″"
 
+# Core Astro Logic
 def get_astro_data(date_str, time_str, latitude, longitude):
     dt = datetime.datetime.strptime(f"{date_str} {time_str}", "%d-%m-%Y %H:%M")
     utc_dt = dt - datetime.timedelta(hours=5, minutes=30)
@@ -96,14 +102,16 @@ def get_astro_data(date_str, time_str, latitude, longitude):
         'planets': planet_data
     }
 
-@app.route('/', methods=['GET'])
+# Routes
+@app.route('/')
 def index():
     return render_template('birth_form.html')
 
 @app.route('/submit', methods=['POST'])
 def submit():
     try:
-        date_str = request.form.get('birthdate')       # e.g. 29-12-2005
+        name = request.form.get('name')
+        date_str = request.form.get('birthdate')
         hour = request.form.get('hour')
         minute = request.form.get('minute')
         ampm = request.form.get('ampm')
@@ -115,33 +123,63 @@ def submit():
 
         geolocator = Nominatim(user_agent="astro_locator")
         location = geolocator.geocode(place)
-
         if not location:
             return render_template('birth_form.html', error="Invalid place entered.")
 
         lat = location.latitude
         lon = location.longitude
-
         data = get_astro_data(date_str, time_str, lat, lon)
+
+        planet_hash = hashlib.md5(json.dumps(data['planets'], sort_keys=True).encode()).hexdigest()
+
+        conn = sqlite3.connect("astro_data.db")
+        c = conn.cursor()
+
+        # Check if this planetary data already exists
+        c.execute("SELECT id FROM planet_positions WHERE data_hash = ?", (planet_hash,))
+        row = c.fetchone()
+        if row:
+            planet_data_id = row[0]
+        else:
+            c.execute("INSERT INTO planet_positions (data_hash, ascendant, planets) VALUES (?, ?, ?)", (
+                planet_hash,
+                json.dumps(data['ascendant']),
+                json.dumps(data['planets'])
+            ))
+            planet_data_id = c.lastrowid
+
+        # Prevent duplicate user insertion
+        c.execute("SELECT id FROM users WHERE name=? AND birthdate=? AND planet_data_id=?", 
+                  (name, date_str, planet_data_id))
+        existing_user = c.fetchone()
+
+        if not existing_user:
+            c.execute("INSERT INTO users (name, birthdate, birthtime, state, city, planet_data_id) VALUES (?, ?, ?, ?, ?, ?)", (
+                name, date_str, time_str, state, city, planet_data_id
+            ))
+
+        conn.commit()
+        conn.close()
+
         return jsonify(data)
 
     except Exception as e:
         return render_template('birth_form.html', error=str(e))
 
+# API for dynamic state suggestions
 @app.route("/api/states")
 def api_states():
-    # This should be replaced with dynamic DB or CSV source
     states = ["Punjab", "Maharashtra", "Karnataka", "Tamil Nadu"]
     query = request.args.get("query", "").lower()
     return jsonify({"suggestions": [s for s in states if query in s.lower()]})
 
+# API for dynamic city suggestions
 @app.route("/api/cities")
 def api_cities():
-    # Replace with filtered query from your database
     state = request.args.get("state", "")
     query = request.args.get("query", "").lower()
     cities_by_state = {
-        "Punjab": ["Ludhiana", "Amritsar"],
+        "Punjab": ["Ludhiana", "Amritsar", "Barnala"],
         "Maharashtra": ["Mumbai", "Pune"],
         "Karnataka": ["Bangalore", "Mysore"],
         "Tamil Nadu": ["Chennai", "Coimbatore"]

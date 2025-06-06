@@ -7,7 +7,7 @@
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom right, #f9d423, #ff4e50); /* yellow-orange gradient */
+            background: linear-gradient(to bottom right, #f9d423, #ff4e50);
             font-family: Arial, sans-serif;
             height: 100vh;
             display: flex;
@@ -87,74 +87,77 @@
     </style>
 </head>
 <body>
-    <div class="form-box">
-        <h1>Enter Birth Details</h1>
-        {% if error %}
-            <p class="error">{{ error }}</p>
-        {% endif %}
-        <form method="POST" action="/submit">
-            <label>Birth Date:</label>
-            <input type="text" name="birthdate" placeholder="DD-MM-YYYY" required>
+<div class="form-box">
+    <h1>Enter Birth Details</h1>
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+    <form method="POST" action="/submit">
+        <label>Name:</label>
+        <input type="text" name="name" placeholder="Your Name" required>
 
-            <label>Birth Time:</label>
-            <input type="number" name="hour" placeholder="HH" min="1" max="12" required>
-            <input type="number" name="minute" placeholder="MM" min="0" max="59" required>
-            <select name="ampm">
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-            </select>
+        <label>Birth Date:</label>
+        <input type="text" name="birthdate" placeholder="DD-MM-YYYY" required>
 
-            <label>State:</label>
-            <input type="text" id="state" name="state" autocomplete="off" required>
-            <ul id="state-suggestions" class="suggestions"></ul>
+        <label>Birth Time:</label>
+        <input type="number" name="hour" placeholder="HH" min="1" max="12" required>
+        <input type="number" name="minute" placeholder="MM" min="0" max="59" required>
+        <select name="ampm">
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+        </select>
 
-            <label>City:</label>
-            <input type="text" id="city" name="city" autocomplete="off" required>
-            <ul id="city-suggestions" class="suggestions"></ul>
+        <label>State:</label>
+        <input type="text" id="state" name="state" autocomplete="off" required>
+        <ul id="state-suggestions" class="suggestions"></ul>
 
-            <button type="submit">Submit</button>
-        </form>
-    </div>
+        <label>City:</label>
+        <input type="text" id="city" name="city" autocomplete="off" required>
+        <ul id="city-suggestions" class="suggestions"></ul>
 
-    <script>
-        function fetchSuggestions(inputId, listId, endpoint, extraParams = {}) {
-            const input = document.getElementById(inputId);
-            const list = document.getElementById(listId);
+        <button type="submit">Submit</button>
+    </form>
+</div>
 
-            input.addEventListener("input", () => {
-                const query = input.value;
-                if (query.length < 2) {
+<script>
+    function fetchSuggestions(inputId, listId, endpoint, extraParams = {}) {
+        const input = document.getElementById(inputId);
+        const list = document.getElementById(listId);
+
+        input.addEventListener("input", () => {
+            const query = input.value;
+            if (query.length < 2) {
+                list.innerHTML = '';
+                return;
+            }
+
+            const url = new URL(endpoint, window.location.origin);
+            url.searchParams.set("query", query);
+            for (const key in extraParams) {
+                url.searchParams.set(key, extraParams[key]());
+            }
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
                     list.innerHTML = '';
-                    return;
-                }
-
-                const url = new URL(endpoint, window.location.origin);
-                url.searchParams.set("query", query);
-                for (const key in extraParams) {
-                    url.searchParams.set(key, extraParams[key]());
-                }
-
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        list.innerHTML = '';
-                        data.suggestions.forEach(item => {
-                            const li = document.createElement("li");
-                            li.textContent = item;
-                            li.onclick = () => {
-                                input.value = item;
-                                list.innerHTML = '';
-                            };
-                            list.appendChild(li);
-                        });
+                    data.suggestions.forEach(item => {
+                        const li = document.createElement("li");
+                        li.textContent = item;
+                        li.onclick = () => {
+                            input.value = item;
+                            list.innerHTML = '';
+                        };
+                        list.appendChild(li);
                     });
-            });
-        }
-
-        fetchSuggestions("state", "state-suggestions", "/api/states");
-        fetchSuggestions("city", "city-suggestions", "/api/cities", {
-            state: () => document.getElementById("state").value
+                });
         });
-    </script>
+    }
+
+    fetchSuggestions("state", "state-suggestions", "/api/states");
+    fetchSuggestions("city", "city-suggestions", "/api/cities", {
+        state: () => document.getElementById("state").value
+    });
+</script>
 </body>
 </html>
