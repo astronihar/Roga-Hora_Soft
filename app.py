@@ -134,10 +134,6 @@ def get_astro_data(date_str, time_str, latitude, longitude):
     }
 
 
-
-
-
-
 @app.route('/')
 def index():
     return render_template('birth_form.html')
