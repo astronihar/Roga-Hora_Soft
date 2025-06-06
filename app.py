@@ -199,7 +199,8 @@ def submit():
         conn.commit()
         conn.close()
 
-        return jsonify(data)
+        # return jsonify(data) ------------------------------------------------------------- This is where i rendered my html insted of json :)
+        return render_template('result.html', data=data, name=name)
 
     except Exception as e:
         return render_template('birth_form.html', error=str(e))
