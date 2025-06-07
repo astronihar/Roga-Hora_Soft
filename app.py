@@ -120,10 +120,43 @@ def get_astro_data(date_str, time_str, latitude, longitude):
     d30_chart = get_d30_chart(absolute_degrees, asc_absolute_deg)
     d60_chart = get_d60_chart(absolute_degrees, asc_absolute_deg)
 
+    
+
+    import re
+
+    karaka_order = ['AK', 'AmK', 'BK', 'MK', 'PuK', 'GnK', 'DK']
+
+    def dms_to_decimal(dms_str):
+      """Convert DMS like '27°8′60″' to decimal degrees."""
+      match = re.match(r"(\d+)[°º](\d+)[′'](\d+)[″\"]?", dms_str)
+      if match:
+        deg, min_, sec = map(int, match.groups())
+        return deg + (min_ / 60) + (sec / 3600)
+      else:
+         return 0.0
+
+# Only planets considered for karakas
+    karaka_candidates = {
+    planet: dms_to_decimal(data['degree']) 
+    for planet, data in planet_data.items()
+    if planet not in ['Rahu', 'Ketu']
+}
+
+# Sort by descending total degrees
+    sorted_karakas = sorted(karaka_candidates.items(), key=lambda x: x[1], reverse=True)
+
+# Assign karakas to planets
+    karakas = {}
+    for i, (planet_name, _) in enumerate(sorted_karakas):
+      if i < len(karaka_order):
+        planet_data[planet_name]['karaka'] = karaka_order[i]
+        karakas[karaka_order[i]] = planet_name
+
     return {
         'timestamp_ist': dt.strftime("%Y-%m-%d %H:%M"),
         'ascendant': asc_data,
         'planets': planet_data,
+        'karakas': karakas,  
         'divisionals': {
             'D3': d3_chart,
             'D9': d9_chart,
@@ -224,6 +257,14 @@ def api_cities():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+
+####################################################
+
+
+
 
 
 

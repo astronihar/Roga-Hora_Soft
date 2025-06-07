@@ -1,445 +1,154 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Astrological Data Result</title>
-</head>
-<body>
-
-
-
-     <h1>Astrological Data for {{ name }}</h1>
-    <p><strong>Birth Date & Time (IST):</strong> {{ data.timestamp_ist }}</p>
-    <h2>Ascendant</h2>
-    <ul>
-        <li>Zodiac: {{ data.ascendant.zodiac }}</li>
-        <li>Degree: {{ data.ascendant.degree }}</li>
-        <li>Nakshatra: {{ data.ascendant.nakshatra }}</li>
-        <li>Pada: {{ data.ascendant.pada }}</li>
-    </ul>
-
-    <h2>Planets</h2>
-    <ul>
-    {% for planet, pdata in data.planets.items() %}
-        <li><strong>{{ planet }}</strong>:
-            Zodiac: {{ pdata.zodiac }}, Degree: {{ pdata.degree }}, Nakshatra: {{ pdata.nakshatra }}, Pada: {{ pdata.pada }}
-        </li>
-    {% endfor %}
-    </ul>
-
-
-
-    <h2>Divisional Charts</h2>
-
-{% for divisional_name, chart_data in data.divisionals.items() %}
-  <h3>{{ divisional_name }} Chart</h3>
-  <table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-      <tr>
-        <th>Planet</th>
-        <th>Zodiac / Degree / Nakshatra / Pada (if available)</th>
-        <th>Raw Degree (optional)</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for planet, value in chart_data.items() %}
-        <tr>
-          <td>{{ planet }}</td>
-          <td>
-            {% if value.zodiac %}
-              {{ value.zodiac }}
-              {% if value.degree %} / {{ value.degree }}{% endif %}
-              {% if value.nakshatra %} / {{ value.nakshatra }}{% endif %}
-              {% if value.pada %} / Pada {{ value.pada }}{% endif %}
-            {% else %}
-              {{ value }}
-            {% endif %}
-          </td>
-          <td>
-            {% if value.raw_degree %}
-              {{ value.raw_degree }}
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% endfor %}
-
-
-    <a href="/">Back to form</a> 
-
-
-</body>
-</html> -->
-
-
-
-
-
-
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Astrological Chart Result</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f5f5;
-    }
-
-    /* Top Navigation Bar */
-    .navbar {
-      background: linear-gradient(to bottom, #d3d3d3, #ffffff);
-      border-bottom: 2px solid #888;
-      padding: 5px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-    }
-
-    .navbar-layer {
-      display: flex;
-      gap: 15px;
-    }
-
-    .container {
-      display: grid;
-      grid-template-columns: 2fr 3fr;
-      height: calc(100vh - 60px);
-      padding: 10px;
-      gap: 10px;
-    }
-
-    .charts {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      padding: 10px;
-    }
-
-    .diamond {
-      border: 1px solid #888;
-      padding: 5px;
-      background: white;
-      position: relative;
-      width: 180px;
-      height: 180px;
-      transform: rotate(45deg);
-      margin: 0 auto;
-    }
-
-    .diamond-label {
-      position: absolute;
-      top: -25px;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .diamond-content {
-      transform: rotate(-45deg);
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 10px;
-      font-size: 13px;
-    }
-
-    .planetary-info {
-      background-color: white;
-      padding: 15px;
-      border: 1px solid #ccc;
-      overflow-y: scroll;
-      max-height: 85vh;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
-
-    th, td {
-      padding: 6px 8px;
-      border: 1px solid #aaa;
-      text-align: left;
-      font-size: 13px;
-    }
-
-    h2, h3 {
-      margin-top: 10px;
-      color: #333;
-    }
-
-    a {
-      display: inline-block;
-      margin-top: 10px;
-      text-decoration: none;
-      background: #333;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-<body>
-
-   Three-layer Navigation Mimic 
-  <div class="navbar">
-    <div class="navbar-layer">
-      <span>File</span>
-      <span>Edit</span>
-      <span>Modes</span>
-      <span>View</span>
-      <span>Preferences</span>
-      <span>Websites</span>
-    </div>
-    <div class="navbar-layer">
-      <span>SP</span>
-      <span>KH</span>
-      <span>🔍</span>
-    </div>
-    <div class="navbar-layer">
-      <span>📅 Min | Day</span>
-    </div>
-  </div>
-
-   Main Content 
-  <div class="container">
-
-     Left: Diamond-shaped Divisional Charts 
-    <div class="charts">
-      {% for dchart in ['D1', 'D3', 'D9', 'D30', 'D60'] %}
-      <div class="diamond">
-        <div class="diamond-label">{{ dchart }}</div>
-        <div class="diamond-content">
-          {% if data.divisionals[dchart] %}
-            {% for planet, pdata in data.divisionals[dchart].items() %}
-              <div><b>{{ planet }}</b>: {{ pdata.zodiac or '' }}<br></div>
-            {% endfor %}
-          {% else %}
-            <span>No Data</span>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-     Right: Planetary Table and Details 
-    <div class="planetary-info">
-      <h2>{{ name }}'s Horoscope</h2>
-      <p><strong>Birth Date & Time (IST):</strong> {{ data.timestamp_ist }}</p>
-
-      <h3>Ascendant</h3>
-      <ul>
-        <li>Zodiac: {{ data.ascendant.zodiac }}</li>
-        <li>Degree: {{ data.ascendant.degree }}</li>
-        <li>Nakshatra: {{ data.ascendant.nakshatra }}</li>
-        <li>Pada: {{ data.ascendant.pada }}</li>
-      </ul>
-
-      <h3>Planets</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Planet</th>
-            <th>Zodiac</th>
-            <th>Degree</th>
-            <th>Nakshatra</th>
-            <th>Pada</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for planet, pdata in data.planets.items() %}
-          <tr>
-            <td>{{ planet }}</td>
-            <td>{{ pdata.zodiac }}</td>
-            <td>{{ pdata.degree }}</td>
-            <td>{{ pdata.nakshatra }}</td>
-            <td>{{ pdata.pada }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <a href="/">← Back to Form</a>
-    </div>
-  </div>
-</body>
-</html> -->
-
-
-
-<!-- above dont have zygote diagrame  -->
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Astrological Chart Result</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f5f5;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Astrological Chart Result</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f5f5;
+      }
 
-    .navbar {
-      background: linear-gradient(to bottom, #d3d3d3, #ffffff);
-      border-bottom: 2px solid #888;
-      padding: 5px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-    }
+      .navbar {
+        background: linear-gradient(to bottom, #d3d3d3, #ffffff);
+        border-bottom: 2px solid #888;
+        padding: 5px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+      }
 
-    .navbar-layer {
-      display: flex;
-      gap: 15px;
-    }
+      .navbar-layer {
+        display: flex;
+        gap: 15px;
+      }
 
-    .container {
-      display: grid;
-      grid-template-columns: 2fr 3fr;
-      height: calc(100vh - 60px);
-      padding: 10px;
-      gap: 10px;
-    }
+      .container {
+        display: grid;
+        grid-template-columns: 2fr 3fr;
+        height: calc(100vh - 60px);
+        padding: 10px;
+        gap: 10px;
+      }
 
-    .charts {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      padding: 10px;
-    }
+      .charts {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 10px;
+      }
 
-    .diamond {
-      border: 1px solid #888;
-      padding: 5px;
-      background: white;
-      position: relative;
-      width: 180px;
-      height: 180px;
-      transform: rotate(45deg);
-      margin: 0 auto;
-    }
+      .diamond {
+        border: 1px solid #888;
+        padding: 5px;
+        background: white;
+        position: relative;
+        width: 180px;
+        height: 180px;
+        transform: rotate(45deg);
+        margin: 0 auto;
+      }
 
-    .diamond-label {
-      position: absolute;
-      top: -25px;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-    }
+      .diamond-label {
+        position: absolute;
+        top: -25px;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+      }
 
-    .diamond-content {
-      transform: rotate(-45deg);
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 10px;
-      font-size: 13px;
-    }
+      .diamond-content {
+        transform: rotate(-45deg);
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 10px;
+        font-size: 13px;
+      }
 
-    .planetary-info {
-      background-color: white;
-      padding: 15px;
-      border: 1px solid #ccc;
-      overflow-y: scroll;
-      max-height: 85vh;
-    }
+      .planetary-info {
+        background-color: white;
+        padding: 15px;
+        border: 1px solid #ccc;
+        overflow-y: scroll;
+        max-height: 85vh;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
 
-    th, td {
-      padding: 6px 8px;
-      border: 1px solid #aaa;
-      text-align: left;
-      font-size: 13px;
-    }
+      th,
+      td {
+        padding: 6px 8px;
+        border: 1px solid #aaa;
+        text-align: left;
+        font-size: 13px;
+      }
 
-    h2, h3 {
-      margin-top: 10px;
-      color: #333;
-    }
+      h2,
+      h3 {
+        margin-top: 10px;
+        color: #333;
+      }
 
-    a {
-      display: inline-block;
-      margin-top: 10px;
-      text-decoration: none;
-      background: #333;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-    }
-  </style>
-</head>
-<body>
-
-  
-  <div class="navbar">
-    <div class="navbar-layer">
-      <span>File</span>
-      <span>Edit</span>
-      <span>Modes</span>
-      <span>View</span>
-      <span>Preferences</span>
-      <span>Websites</span>
-    </div>
-    <div class="navbar-layer">
-      <span>SP</span>
-      <span>KH</span>
-      <span>🔍</span>
-    </div>
-    <div class="navbar-layer">
-      <span>📅 Min | Day</span>
-    </div>
-  </div>
-
-  <div class="container">
-
-
-    <div class="charts">
-      {% for dchart in ['D1', 'D3', 'D9', 'D30', 'D60'] %}
-      <div class="diamond">
-        <div class="diamond-label">{{ dchart }}</div>
-        <div class="diamond-content">
-          {% if data.divisionals[dchart] %}
-            {% for planet, pdata in data.divisionals[dchart].items() %}
-              <div><b>{{ planet }}</b>: {{ pdata.zodiac or '' }}<br></div>
-            {% endfor %}
-          {% else %}
-            <span>No Data</span>
-          {% endif %}
-        </div>
+      a {
+        display: inline-block;
+        margin-top: 10px;
+        text-decoration: none;
+        background: #333;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="navbar-layer">
+        <span>File</span>
+        <span>Edit</span>
+        <span>Modes</span>
+        <span>View</span>
+        <span>Preferences</span>
+        <span>Websites</span>
       </div>
-      {% endfor %}
+      <div class="navbar-layer">
+        <span>SP</span>
+        <span>KH</span>
+        <span>🔍</span>
+      </div>
+      <div class="navbar-layer">
+        <span>📅 Min | Day</span>
+      </div>
     </div>
 
-    <div class="planetary-info">
-      <h2>{{ name }}'s Horoscope</h2>
+    <div class="container">
+      <div class="charts">
+        {% for dchart in ['D1', 'D3', 'D9', 'D30', 'D60'] %}
+        <div class="diamond">
+          <div class="diamond-label">{{ dchart }}</div>
+          <div class="diamond-content">
+            {% if data.divisionals[dchart] %} {% for planet, pdata in
+            data.divisionals[dchart].items() %}
+            <div><b>{{ planet }}</b>: {{ pdata.zodiac or '' }}<br /></div>
+            {% endfor %} {% else %}
+            <span>No Data</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="planetary-info">
+        <!-- <h2>{{ name }}'s Horoscope</h2>
       <p><strong>Birth Date & Time (IST):</strong> {{ data.timestamp_ist }}</p>
 
       <h3>Ascendant</h3>
@@ -448,10 +157,9 @@
         <li>Degree: {{ data.ascendant.degree }}</li>
         <li>Nakshatra: {{ data.ascendant.nakshatra }}</li>
         <li>Pada: {{ data.ascendant.pada }}</li>
-      </ul>
+      </ul> -->
 
-      <h3>Planets</h3>
-      <table>
+        <!-- <table>
         <thead>
           <tr>
             <th>Planet</th>
@@ -472,13 +180,50 @@
           </tr>
           {% endfor %}
         </tbody>
-      </table>
+      </table> -->
 
-      <a href="/">← Back to Form</a>
+        <h3>Planets</h3>
+        <div
+          style="
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+          "
+        >
+          <table>
+            <thead>
+              <tr>
+                <th>Planet</th>
+                <th>Zodiac</th>
+                <th>Degree</th>
+                <th>Nakshatra</th>
+                <th>Pada</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for planet, pdata in data.planets.items() %}
+              <tr>
+                <td>
+  {{ planet }}
+  {% if pdata.karaka %}
+    <span style="color: darkred">({{ pdata.karaka }})</span>
+  {% endif %}
+</td>
+                <td>{{ pdata.zodiac }}</td>
+                <td>{{ pdata.degree }}</td>
+                <td>{{ pdata.nakshatra }}</td>
+                <td>{{ pdata.pada }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
 
-  
-      <h3 style="margin-top: 20px;">3D Human Anatomy Viewer</h3>
-      <div style="width: 100%; height: 500px; overflow: hidden; border: 1px solid #ccc;">
+        <!-- <a href="/">← Back to Form</a> -->
+
+        <!-- <h3 style="margin-top: 20px;">3D Human Anatomy Viewer</h3>
+      <div style="width: 100%; height: 700px; overflow: hidden; border: 1px solid #ccc;">
         <iframe 
           src="https://zygotebody.com" 
           width="100%" 
@@ -486,25 +231,10 @@
           style="border: none;"
           allowfullscreen>
         </iframe>
+      </div> -->
       </div>
     </div>
-  </div>
-</body>
-</html> 
- 
-
+  </body>
+</html>
 
 <!-- Above code have Zygote Diagrame -->
-
-
-
-
-
-
-
-
-
-
-
-
-
