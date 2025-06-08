@@ -23,7 +23,7 @@
 
       .navbar-layer {
         display: flex;
-        gap: 15px;
+        gap: 8px;
       }
 
       .container {
@@ -32,54 +32,56 @@
         height: calc(100vh - 60px);
         padding: 10px;
         gap: 10px;
+        display:flex;
+        /* justify-content: flex-end; /* Push content to right */
+        /* border:20px solid black;  */
       }
 
       .charts {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 30px 30px;
         padding: 10px;
-      }
-
-      .diamond {
-        border: 1px solid #888;
-        padding: 5px;
-        background: white;
-        position: relative;
-        width: 180px;
-        height: 180px;
-        transform: rotate(45deg);
+        width: fit-content;
         margin: 0 auto;
       }
 
-      .diamond-label {
-        position: absolute;
-        top: -25px;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        font-weight: bold;
+      .chart-box {
+        position: relative;
+        width: 230px;
+        height: 250px;
+        border: 1px solid #888;
+        background: white;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
-      .diamond-content {
-        transform: rotate(-45deg);
+      .chart-box img.chart-img {
+        width: 100%;
         height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        object-fit: contain;
+      }
+
+      .chart-label {
+        font-weight: bold;
+        font-size: 14px;
+        color: #333;
+        padding: 5px 0;
         text-align: center;
-        padding: 10px;
-        font-size: 13px;
       }
 
       .planetary-info {
         background-color: white;
-        padding: 15px;
-        border: 1px solid #ccc;
-        overflow: hidden;
-        max-height: 85vh;
-        display: flex;
-        flex-direction: column;
+  padding: 15px;
+  border: 1px solid #ccc;
+  overflow: hidden;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  width: 700px; /* ⬅️ adjust as you like (e.g., 40%, 600px, etc.) */
       }
 
       table {
@@ -177,22 +179,23 @@
 
     <div class="container">
       <!-- LEFT: DIVISIONAL CHARTS -->
-      <div class="charts">
-        {% for dchart in ['D1', 'D3', 'D9', 'D30', 'D60'] %}
-        <div class="diamond">
-          <div class="diamond-label">{{ dchart }}</div>
-          <div class="diamond-content">
-            {% if data.divisionals[dchart] %}
-              {% for planet, pdata in data.divisionals[dchart].items() %}
-              <div><b>{{ planet }}</b>: {{ pdata.zodiac or '' }}<br /></div>
-              {% endfor %}
-            {% else %}
-              <span>No Data</span>
-            {% endif %}
-          </div>
+      <!-- {% set chart_labels = {
+        'd1': 'Lagna Chart',
+        'd3': 'Drekkana',
+        'd6': 'Shashtamsa',
+        'd9': 'Navamsa',
+        'd30': 'Trimsamsa',
+        'd60': 'Shashtiamsa'
+      } %} -->
+
+      <!-- <div class="charts">
+        {% for key, label in chart_labels.items() %}
+        <div class="chart-box">
+          <div class="chart-label">D{{ key[1:] }} – {{ label }}</div>
+          <img src="{{ url_for('static', filename='templates/' ~ key ~ '.jpg') }}" alt="{{ label }}" class="chart-img" />
         </div>
         {% endfor %}
-      </div>
+      </div> -->
 
       <!-- RIGHT: PLANETARY INFO -->
       <div class="planetary-info">
@@ -230,7 +233,7 @@
         <!-- VERTICALLY SPLIT SCROLLABLE LEFT & RIGHT BOXES -->
         <div class="info-split">
           <div class="info-box">
-            <h3>Left Info</h3>
+            <h3>DrikPanchang</h3>
             {% for key, value in left_table.items() %}
               <div><b>{{ key }}</b>: {{ value }}</div>
             {% endfor %}
