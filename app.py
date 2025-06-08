@@ -8,7 +8,7 @@ import hashlib
 import json
 import pandas as pd
 import re
-# from logic.anatomylogic import extract_anatomy_data
+
 
 
 app = Flask(__name__)
@@ -267,15 +267,7 @@ def api_cities():
 
 @app.route('/anatomy')
 def anatomy():
-    # TEMP INPUTS (you can make it dynamic later)
-    date_str = "07-06-1995"
-    time_str = "15:45"
-    lat = 28.6139
-    lon = 77.2090
-
-    result = extract_anatomy_data(date_str, time_str, lat, lon)
-    return render_template('anatomy.html', data=result)
-
+    return render_template('anatomy.html')
 
 
 @app.route('/chakras')
