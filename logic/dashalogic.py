@@ -17,18 +17,27 @@ def get_dasha_start(moon_long):
 
     return lord, balance_years
 
+
+
+
+
+
 def calculate_dasha_levels(start_datetime, moon_long):
-    lord, balance = get_dasha_start(moon_long)
+    # Step 1: Get initial Mahadasha and balance
+    maha_lord, balance_years = get_dasha_start(moon_long)
     dasha_list = []
-    current_date = start_datetime
-    start_index = [d[0] for d in DASHA_SEQUENCE].index(lord)
 
-    for i in range(start_index, start_index + 9):
-        maha_lord, full_maha_years = DASHA_SEQUENCE[i % 9]
-        maha_years = balance if i == start_index else full_maha_years
+    # Step 2: Compute actual Mahadasha start from birth
+    maha_index = [d[0] for d in DASHA_SEQUENCE].index(maha_lord)
+    maha_start_actual = start_datetime - timedelta(days=balance_years * 365.25)
+    current_date = maha_start_actual
 
+    # Step 3: Loop through 9 Mahadashas
+    for i in range(9):
+        maha_lord, maha_years = DASHA_SEQUENCE[(maha_index + i) % 9]
         maha_start = current_date
         maha_end = maha_start + timedelta(days=maha_years * 365.25)
+
         mahadasha_data = {
             'mahadasha': maha_lord,
             'start': maha_start,
@@ -36,52 +45,56 @@ def calculate_dasha_levels(start_datetime, moon_long):
             'antardashas': []
         }
 
-        antar_current = maha_start
+        # Step 4: Calculate Antardasha inside Mahadasha
+        antar_start = maha_start
         for antar_lord, antar_years in DASHA_SEQUENCE:
             antar_duration = (maha_end - maha_start).total_seconds() * (antar_years / 120)
-            antar_end = antar_current + timedelta(seconds=antar_duration)
+            antar_end = antar_start + timedelta(seconds=antar_duration)
 
             antardasha_data = {
                 'antardasha': antar_lord,
-                'start': antar_current,
+                'start': antar_start,
                 'end': antar_end,
                 'pratyantardashas': []
             }
 
-            praty_current = antar_current
+            # Step 5: Pratyantar inside Antardasha
+            praty_start = antar_start
             for praty_lord, praty_years in DASHA_SEQUENCE:
-                praty_duration = (antar_end - antar_current).total_seconds() * (praty_years / 120)
-                praty_end = praty_current + timedelta(seconds=praty_duration)
+                praty_duration = (antar_end - antar_start).total_seconds() * (praty_years / 120)
+                praty_end = praty_start + timedelta(seconds=praty_duration)
 
                 praty_data = {
                     'pratyantardasha': praty_lord,
-                    'start': praty_current,
+                    'start': praty_start,
                     'end': praty_end,
                     'sookshma': []
                 }
 
-                sook_current = praty_current
+                # Step 6: Sookshma inside Pratyantar
+                sook_start = praty_start
                 for sook_lord, sook_years in DASHA_SEQUENCE:
-                    sook_duration = (praty_end - praty_current).total_seconds() * (sook_years / 120)
-                    sook_end = sook_current + timedelta(seconds=sook_duration)
+                    sook_duration = (praty_end - praty_start).total_seconds() * (sook_years / 120)
+                    sook_end = sook_start + timedelta(seconds=sook_duration)
 
                     praty_data['sookshma'].append({
                         'sookshmadasha': sook_lord,
-                        'start': sook_current,
+                        'start': sook_start,
                         'end': sook_end
                     })
-                    sook_current = sook_end
+                    sook_start = sook_end
 
                 antardasha_data['pratyantardashas'].append(praty_data)
-                praty_current = praty_end
+                praty_start = praty_end
 
             mahadasha_data['antardashas'].append(antardasha_data)
-            antar_current = antar_end
+            antar_start = antar_end
 
         dasha_list.append(mahadasha_data)
         current_date = maha_end
 
     return dasha_list
+
 
 
 def get_full_dasha_from_session():
