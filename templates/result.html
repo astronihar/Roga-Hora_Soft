@@ -12,12 +12,13 @@
 
       .navbar {
         background: linear-gradient(to bottom, #d3d3d3, #ffffff);
-        border-bottom: 2px solid #888;
+        border-bottom: 1px solid #aaa;
         padding: 5px 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         font-size: 14px;
+      }
+
+      .top-bar {
+        border-top: 2px solid #666;
       }
 
       .navbar-layer {
@@ -75,8 +76,10 @@
         background-color: white;
         padding: 15px;
         border: 1px solid #ccc;
-        overflow-y: scroll;
+        overflow: hidden;
         max-height: 85vh;
+        display: flex;
+        flex-direction: column;
       }
 
       table {
@@ -108,10 +111,44 @@
         padding: 6px 12px;
         border-radius: 4px;
       }
+
+      .info-split {
+        display: flex;
+        flex: 1;
+        height: 300px;
+        border-top: 1px solid #ccc;
+        margin-top: 10px;
+      }
+
+      .info-box {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        max-height: 100%;
+      }
+
+      .info-box:not(:last-child) {
+        border-right: 1px solid #ccc;
+      }
+
+      .info-box h3 {
+        text-align: center;
+        margin-top: 0;
+        background: white;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      .info-box div {
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
     </style>
   </head>
   <body>
-    <div class="navbar">
+    <!-- NAVBAR LAYER 1 -->
+    <div class="navbar top-bar">
       <div class="navbar-layer">
         <span>File</span>
         <span>Edit</span>
@@ -120,77 +157,47 @@
         <span>Preferences</span>
         <span>Websites</span>
       </div>
+    </div>
+
+    <!-- NAVBAR LAYER 2 -->
+    <div class="navbar mid-bar">
       <div class="navbar-layer">
         <span>SP</span>
         <span>KH</span>
         <span>🔍</span>
       </div>
+    </div>
+
+    <!-- NAVBAR LAYER 3 -->
+    <div class="navbar bottom-bar">
       <div class="navbar-layer">
         <span>📅 Min | Day</span>
       </div>
     </div>
 
     <div class="container">
+      <!-- LEFT: DIVISIONAL CHARTS -->
       <div class="charts">
         {% for dchart in ['D1', 'D3', 'D9', 'D30', 'D60'] %}
         <div class="diamond">
           <div class="diamond-label">{{ dchart }}</div>
           <div class="diamond-content">
-            {% if data.divisionals[dchart] %} {% for planet, pdata in
-            data.divisionals[dchart].items() %}
-            <div><b>{{ planet }}</b>: {{ pdata.zodiac or '' }}<br /></div>
-            {% endfor %} {% else %}
-            <span>No Data</span>
+            {% if data.divisionals[dchart] %}
+              {% for planet, pdata in data.divisionals[dchart].items() %}
+              <div><b>{{ planet }}</b>: {{ pdata.zodiac or '' }}<br /></div>
+              {% endfor %}
+            {% else %}
+              <span>No Data</span>
             {% endif %}
           </div>
         </div>
         {% endfor %}
       </div>
 
+      <!-- RIGHT: PLANETARY INFO -->
       <div class="planetary-info">
-        <!-- <h2>{{ name }}'s Horoscope</h2>
-      <p><strong>Birth Date & Time (IST):</strong> {{ data.timestamp_ist }}</p>
-
-      <h3>Ascendant</h3>
-      <ul>
-        <li>Zodiac: {{ data.ascendant.zodiac }}</li>
-        <li>Degree: {{ data.ascendant.degree }}</li>
-        <li>Nakshatra: {{ data.ascendant.nakshatra }}</li>
-        <li>Pada: {{ data.ascendant.pada }}</li>
-      </ul> -->
-
-        <!-- <table>
-        <thead>
-          <tr>
-            <th>Planet</th>
-            <th>Zodiac</th>
-            <th>Degree</th>
-            <th>Nakshatra</th>
-            <th>Pada</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for planet, pdata in data.planets.items() %}
-          <tr>
-            <td>{{ planet }}</td>
-            <td>{{ pdata.zodiac }}</td>
-            <td>{{ pdata.degree }}</td>
-            <td>{{ pdata.nakshatra }}</td>
-            <td>{{ pdata.pada }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table> -->
-
         <h3>Planets</h3>
-        <div
-          style="
-            max-height: 250px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            margin-bottom: 20px;
-          "
-        >
+        <div style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 10px;">
           <table>
             <thead>
               <tr>
@@ -205,11 +212,11 @@
               {% for planet, pdata in data.planets.items() %}
               <tr>
                 <td>
-  {{ planet }}
-  {% if pdata.karaka %}
-    <span style="color: darkred">({{ pdata.karaka }})</span>
-  {% endif %}
-</td>
+                  {{ planet }}
+                  {% if pdata.karaka %}
+                    <span style="color: darkred">({{ pdata.karaka }})</span>
+                  {% endif %}
+                </td>
                 <td>{{ pdata.zodiac }}</td>
                 <td>{{ pdata.degree }}</td>
                 <td>{{ pdata.nakshatra }}</td>
@@ -220,21 +227,22 @@
           </table>
         </div>
 
-        <!-- <a href="/">← Back to Form</a> -->
-
-        <!-- <h3 style="margin-top: 20px;">3D Human Anatomy Viewer</h3>
-      <div style="width: 100%; height: 700px; overflow: hidden; border: 1px solid #ccc;">
-        <iframe 
-          src="https://zygotebody.com" 
-          width="100%" 
-          height="100%" 
-          style="border: none;"
-          allowfullscreen>
-        </iframe>
-      </div> -->
+        <!-- VERTICALLY SPLIT SCROLLABLE LEFT & RIGHT BOXES -->
+        <div class="info-split">
+          <div class="info-box">
+            <h3>Left Info</h3>
+            {% for key, value in left_table.items() %}
+              <div><b>{{ key }}</b>: {{ value }}</div>
+            {% endfor %}
+          </div>
+          <div class="info-box">
+            <h3>Right Info</h3>
+            {% for key, value in right_table.items() %}
+              <div><b>{{ key }}</b>: {{ value }}</div>
+            {% endfor %}
+          </div>
+        </div>
       </div>
     </div>
   </body>
 </html>
-
-<!-- Above code have Zygote Diagrame -->
