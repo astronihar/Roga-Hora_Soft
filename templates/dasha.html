@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vimshottari Dasha</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        .dasha-card {
+            margin-bottom: 20px;
+        }
+        .dasha-card .card-body {
+            padding: 1rem;
+        }
+        .nested-level {
+            margin-left: 20px;
+        }
+        .dasha-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .dasha-dates {
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .card-header {
+            background-color: #343a40;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="mb-4">Vimshottari Dasha Periods</h1>
+
+    {% for maha in dasha_data %}
+        <div class="card dasha-card">
+            <div class="card-header">
+                Mahadasha: {{ maha.mahadasha }} 
+                <span class="dasha-dates">({{ maha.start.strftime('%d %b %Y') }} - {{ maha.end.strftime('%d %b %Y') }})</span>
+            </div>
+            <div class="card-body">
+                {% for antar in maha.antardashas %}
+                    <div class="nested-level">
+                        <div class="dasha-title">Antardasha: {{ antar.antardasha }}</div>
+                        <div class="dasha-dates">({{ antar.start.strftime('%d %b %Y') }} - {{ antar.end.strftime('%d %b %Y') }})</div>
+
+                        {% for praty in antar.pratyantardashas %}
+                            <div class="nested-level">
+                                <div class="dasha-title">Pratyantardasha: {{ praty.pratyantardasha }}</div>
+                                <div class="dasha-dates">({{ praty.start.strftime('%d %b %Y') }} - {{ praty.end.strftime('%d %b %Y') }})</div>
+
+                                {% for sook in praty.sookshma %}
+                                    <div class="nested-level">
+                                        <div>Sookshmadasha: {{ sook.sookshmadasha }}</div>
+                                        <div class="dasha-dates">({{ sook.start.strftime('%d %b %Y') }} - {{ sook.end.strftime('%d %b %Y') }})</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</body>
+</html>

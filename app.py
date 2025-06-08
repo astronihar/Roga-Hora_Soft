@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 from geopy.geocoders import Nominatim
-from divisional import get_d3_chart, get_d6_chart, get_d9_chart, get_d30_chart, get_d60_chart
 import swisseph as swe
 import datetime
 import sqlite3
@@ -8,144 +7,68 @@ import hashlib
 import json
 import pandas as pd
 import re
+import os
+
+from logic.birth_form_logic import *
+from logic.astronihar_api_calc import *
+from logic.divisional import *
+from flask import Flask, render_template, request, session
 
 
 
 app = Flask(__name__)
 swe.set_ephe_path('.')
 
-city_df = pd.read_csv("Indian_Cities_Geo_Data.csv")
-city_df['state'] = city_df['state'].astype(str)
-city_df['city'] = city_df['city'].astype(str)
 
-zodiac_signs = [
-    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
-]
+app.secret_key = os.urandom(24)  
 
-nakshatras = [
-    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashirsha", "Ardra", "Punarvasu",
-    "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta",
-    "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha",
-    "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
-    "Uttara Bhadrapada", "Revati"
-]
 
-def decimal_to_dms(degree):
-    d = int(degree)
-    m = int((degree - d) * 60)
-    s = round(((degree - d) * 60 - m) * 60)
-    return f"{d}°{m}′{s}″"
 
-def dms_to_decimal(dms_str):
-    match = re.match(r"(\d+)[°º](\d+)[′'](\d+)[″\"]?", dms_str)
-    if match:
-        deg, min_, sec = map(int, match.groups())
-        return deg + (min_ / 60) + (sec / 3600)
-    return 0.0
-
-def deg_str_to_decimal(deg_str):
-    match = re.match(r"(\d+)°(\d+)′(\d+)″", deg_str)
-    if match:
-        d, m, s = map(int, match.groups())
-        return d + m / 60 + s / 3600
-    return 0.0
-
-def get_astro_data(date_str, time_str, latitude, longitude):
-    dt = datetime.datetime.strptime(f"{date_str} {time_str}", "%d-%m-%Y %H:%M")
-    utc_dt = dt - datetime.timedelta(hours=5, minutes=30)
-
-    swe.set_sid_mode(swe.SIDM_LAHIRI)
-    jd = swe.julday(
-        utc_dt.year, utc_dt.month, utc_dt.day,
-        utc_dt.hour + utc_dt.minute / 60 + utc_dt.second / 3600
-    )
-
-    cusps, ascmc = swe.houses_ex(jd, latitude, longitude, b'A', swe.FLG_SIDEREAL)
-    asc_deg = ascmc[swe.ASC]
-    asc_zodiac = int(asc_deg / 30)
-    asc_nak = int(asc_deg / (360 / 27))
-    asc_pada = int(((asc_deg % (360 / 27)) / (13.3333 / 4))) + 1
-
-    asc_data = {
-        'zodiac': zodiac_signs[asc_zodiac],
-        'degree': decimal_to_dms(asc_deg % 30),
-        'nakshatra': nakshatras[asc_nak],
-        'pada': asc_pada
-    }
-
-    planets = {
-        swe.SUN: 'Sun', swe.MOON: 'Moon', swe.MERCURY: 'Mercury',
-        swe.VENUS: 'Venus', swe.MARS: 'Mars', swe.JUPITER: 'Jupiter',
-        swe.SATURN: 'Saturn', swe.MEAN_NODE: 'Rahu'
-    }
-
-    planet_data = {}
-    for code, name in planets.items():
-        pos, _ = swe.calc(jd, code, swe.FLG_SIDEREAL)
-        deg = pos[0]
-        zodiac = int(deg / 30)
-        nak = int(deg / (360 / 27))
-        pada = int(((deg % (360 / 27)) / (13.3333 / 4))) + 1
-        planet_data[name] = {
-            'zodiac': zodiac_signs[zodiac],
-            'degree': decimal_to_dms(deg % 30),
-            'nakshatra': nakshatras[nak],
-            'pada': pada
-        }
-        if name == 'Rahu':
-            rahu_deg = deg
-
-    ketu_deg = (rahu_deg + 180) % 360
-    ketu_zodiac = int(ketu_deg / 30)
-    ketu_nak = int(ketu_deg / (360 / 27))
-    ketu_pada = int(((ketu_deg % (360 / 27)) / (13.3333 / 4))) + 1
-    planet_data['Ketu'] = {
-        'zodiac': zodiac_signs[ketu_zodiac],
-        'degree': decimal_to_dms(ketu_deg % 30),
-        'nakshatra': nakshatras[ketu_nak],
-        'pada': ketu_pada
-    }
-
-    absolute_degrees = {name: swe.calc(jd, code, swe.FLG_SIDEREAL)[0][0] for code, name in planets.items()}
-    absolute_degrees['Ketu'] = ketu_deg
-    asc_absolute_deg = asc_deg
-
-    d3_chart = get_d3_chart(absolute_degrees, asc_absolute_deg)
-    d9_chart = get_d9_chart(absolute_degrees, asc_absolute_deg)
-    d6_chart = get_d6_chart(absolute_degrees, asc_absolute_deg)
-    d30_chart = get_d30_chart(absolute_degrees, asc_absolute_deg)
-    d60_chart = get_d60_chart(absolute_degrees, asc_absolute_deg)
-
-    karaka_order = ['AK', 'AmK', 'BK', 'MK', 'PuK', 'GnK', 'DK']
-    karaka_candidates = {
-        planet: dms_to_decimal(data['degree'])
-        for planet, data in planet_data.items()
-        if planet not in ['Rahu', 'Ketu']
-    }
-    sorted_karakas = sorted(karaka_candidates.items(), key=lambda x: x[1], reverse=True)
-    karakas = {karaka_order[i]: planet for i, (planet, _) in enumerate(sorted_karakas)}
-    for i, (planet, _) in enumerate(sorted_karakas):
-        if i < len(karaka_order):
-            planet_data[planet]['karaka'] = karaka_order[i]
-
-    return {
-        'timestamp_ist': dt.strftime("%Y-%m-%d %H:%M"),
-        'ascendant': asc_data,
-        'planets': planet_data,
-        'karakas': karakas,
-        'divisionals': {
-            'D3': d3_chart,
-            'D9': d9_chart,
-            'D6': d6_chart,
-            'D30': d30_chart,
-            'D60': d60_chart
-        }
-    }
 
 @app.route('/')
 def index():
     return render_template('birth_form.html')
+
+
+# @app.route('/submit', methods=['POST'])
+# def submit():
+#     name = request.form.get('name')
+#     date_str = request.form.get('birthdate')
+#     hour = request.form.get('hour')
+#     minute = request.form.get('minute')
+#     ampm = request.form.get('ampm')
+#     state = request.form.get('state')
+#     city = request.form.get('city')
+
+#     time_str = f"{int(hour) % 12 + (12 if ampm == 'PM' else 0)}:{minute}"
+#     place = f"{city}, {state}"
+
+#     city_state_row = city_df[(city_df['state'].str.lower() == state.lower()) & (city_df['city'].str.lower() == city.lower())]
+#     if not city_state_row.empty:
+#         lat = float(city_state_row.iloc[0]['latitude'])
+#         lon = float(city_state_row.iloc[0]['longitude'])
+#     else:
+#         geolocator = Nominatim(user_agent="astro_locator")
+#         location = geolocator.geocode(place)
+#         if not location:
+#             return render_template('birth_form.html', error="Invalid place entered.")
+#             lat = location.latitude
+#             lon = location.longitude
+
+#     # ✅ Store everything in session
+#     session['name'] = name
+#     session['birthdate'] = date_str
+#     session['timestr'] = time_str
+#     session['hour'] = hour
+#     session['minute'] = minute
+#     session['ampm'] = ampm
+#     session['state'] = state
+#     session['city'] = city
+#     session['lat'] = lat
+#     session['lon'] = lon
+
+
+
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -158,8 +81,13 @@ def submit():
         state = request.form.get('state')
         city = request.form.get('city')
 
+        session['birth_datetime'] = date_str
+      
+
+
         time_str = f"{int(hour) % 12 + (12 if ampm == 'PM' else 0)}:{minute}"
         place = f"{city}, {state}"
+        session['timestr'] = time_str
 
         city_state_row = city_df[(city_df['state'].str.lower() == state.lower()) & (city_df['city'].str.lower() == city.lower())]
         if not city_state_row.empty:
@@ -173,12 +101,15 @@ def submit():
             lat = location.latitude
             lon = location.longitude
 
+
+
         data = get_astro_data(date_str, time_str, lat, lon)
 
         weekday_map = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         weekday = weekday_map[datetime.datetime.strptime(f"{date_str} {time_str}", "%d-%m-%Y %H:%M").weekday()]
 
         moon_total_deg = (zodiac_signs.index(data['planets']['Moon']['zodiac']) * 30) + deg_str_to_decimal(data['planets']['Moon']['degree'])
+        session['moon_degree'] = moon_total_deg
         sun_total_deg = (zodiac_signs.index(data['planets']['Sun']['zodiac']) * 30) + deg_str_to_decimal(data['planets']['Sun']['degree'])
 
         tithi_num = int(((moon_total_deg - sun_total_deg) % 360) / 12) + 1
@@ -221,6 +152,14 @@ def submit():
 
         right_table = {f"Right {i}": f"Info {i}" for i in range(1, 15)}
 
+
+        session['astro_data'] = json.dumps(data)  
+        session['left_table'] = json.dumps(left_table)
+        session['right_table'] = json.dumps(right_table)
+        session['name'] = name
+
+
+        ########Removing redundency
         planet_hash = hashlib.md5(json.dumps(data['planets'], sort_keys=True).encode()).hexdigest()
         conn = sqlite3.connect("astro_data.db")
         c = conn.cursor()
@@ -242,6 +181,8 @@ def submit():
 
         conn.commit()
         conn.close()
+        #######################Database part
+        
 
         return render_template('result.html', data=data, name=name, left_table=left_table, right_table=right_table)
 
@@ -265,9 +206,32 @@ def api_cities():
 
 
 
+
+
+
+@app.route('/home')
+def home():
+    if 'astro_data' in session:
+        data = json.loads(session['astro_data'])
+        left_table = json.loads(session['left_table'])
+        right_table = json.loads(session['right_table'])
+        name = session.get('name', 'Anonymous')
+        return render_template('result.html', data=data, name=name, left_table=left_table, right_table=right_table)
+    else:
+        return "Please submit your birth details first.", 400
+    
+
+
 @app.route('/anatomy')
 def anatomy():
-    return render_template('anatomy.html')
+    if 'astro_data' in session:
+        data = json.loads(session['astro_data'])  # Convert back to dict
+        left_table = json.loads(session['left_table'])
+        right_table = json.loads(session['right_table'])
+        name = session.get('name', 'Anonymous')
+        return render_template('anatomy.html', data=data, name=name, left_table=left_table, right_table=right_table)
+    else:
+        return "No data found in session. Please submit your birth details first.", 400
 
 
 @app.route('/chakras')
@@ -276,7 +240,11 @@ def chakras():
 
 @app.route('/dasha')
 def dasha():
-    return render_template('dasha.html')
+    from logic.dashalogic import get_full_dasha_from_session
+    data = get_full_dasha_from_session()
+    return render_template('dasha.html', dasha_data=data)
+
+
 
 @app.route('/strength')
 def strength():
