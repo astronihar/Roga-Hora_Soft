@@ -125,7 +125,7 @@
 
   <hr style="margin-top: 40px;">
 
-<div class="chart-box" style="width: 1000px; margin: auto;">
+<!-- <div class="chart-box" style="width: 1000px; margin: auto;">
   <h4>Live Planetary Positions (Current Time)</h4>
   <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
     <thead style="background-color: #e0e0e0;">
@@ -149,6 +149,39 @@
       {% endfor %}
     </tbody>
   </table>
+</div> -->
+
+
+
+
+
+
+<div style="width: 100%; padding: 20px;">
+  <div style="background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 20px; overflow-x: auto;">
+    <h2 style="text-align: center; margin-bottom: 15px;">Live Planetary Positions (Current Time)</h2>
+    <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;">
+      <thead style="background-color: #e3e3e3;">
+        <tr>
+          <th style="padding: 10px;">Planet</th>
+          <th style="padding: 10px;">Zodiac</th>
+          <th style="padding: 10px;">Degree</th>
+          <th style="padding: 10px;">Nakshatra</th>
+          <th style="padding: 10px;">Pada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for planet, details in data['planets'].items() %}
+        <tr style="border-bottom: 1px solid #ccc;">
+          <td style="padding: 10px;">{{ planet }}</td>
+          <td style="padding: 10px;">{{ details.zodiac }}</td>
+          <td style="padding: 10px;">{{ "%.2f" % details.degree }}°</td>
+          <td style="padding: 10px;">{{ details.nakshatra }}</td>
+          <td style="padding: 10px;">{{ details.pada }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 </div>

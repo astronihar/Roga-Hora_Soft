@@ -271,7 +271,8 @@ def transit():
         divisionals={'D1': chart_live},
         fixed_chart={'D1': chart_moon},
         planet_table=data['planets'],
-        ascendant=data['ascendant']
+        ascendant=data['ascendant'],
+        data=data
     )
 
 
