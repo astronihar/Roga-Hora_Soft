@@ -1,368 +1,298 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Astrological Chart Result</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f5f5;
-      }
+{% extends "base.html" %}
 
-      .navbar {
-        background: linear-gradient(to bottom, #d3d3d3, #ffffff);
-        border-bottom: 1px solid #aaa;
-        padding: 5px 10px;
-        font-size: 10px;
-      }
+{% block title %}Astrological Chart Result{% endblock %}
 
-      .top-bar {
-        border-top: 2px solid #666;
-      }
+{% block extra_styles %}
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+  }
 
-      .navbar-layer {
-        display: flex;
-        gap: 8px;
-      }
+  .container {
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    height: calc(100vh - 60px);
+    padding: 10px;
+    gap: 10px;
+    display:flex;
+  }
 
-      .container {
-        display: grid;
-        grid-template-columns: 2fr 3fr;
-        height: calc(100vh - 60px);
-        padding: 10px;
-        gap: 10px;
-        display:flex;
-        /* justify-content: flex-end; /* Push content to right */
-        /* border:20px solid black;  */
-      }
+  .charts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px 30px;
+    padding: 10px;
+    width: fit-content;
+    margin: 0 auto;
+  }
 
-      .charts {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30px 30px;
-        padding: 10px;
-        width: fit-content;
-        margin: 0 auto;
-      }
+  .chart-box {
+    position: relative;
+    width: 230px;
+    height: 250px;
+    border: 1px solid #888;
+    background: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-      .chart-box {
-        position: relative;
-        width: 230px;
-        height: 250px;
-        border: 1px solid #888;
-        background: white;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
+  .chart-box img.chart-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 
-      .chart-box img.chart-img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
+  .chart-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    padding: 5px 0;
+    text-align: center;
+  }
 
-      .chart-label {
-        font-weight: bold;
-        font-size: 14px;
-        color: #333;
-        padding: 5px 0;
-        text-align: center;
-      }
+  .planetary-info {
+    background-color: white;
+    padding: 15px;
+    border: 1px solid #ccc;
+    overflow: hidden;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    width: 700px;
+  }
 
-      .planetary-info {
-        background-color: white;
-  padding: 15px;
-  border: 1px solid #ccc;
-  overflow: hidden;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  margin-left: auto;
-  width: 700px; /* ⬅️ adjust as you like (e.g., 40%, 600px, etc.) */
-      }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-      }
+  th, td {
+    padding: 6px 8px;
+    border: 1px solid #aaa;
+    text-align: left;
+    font-size: 13px;
+  }
 
-      th,
-      td {
-        padding: 6px 8px;
-        border: 1px solid #aaa;
-        text-align: left;
-        font-size: 13px;
-      }
+  h2, h3 {
+    margin-top: 10px;
+    color: #333;
+  }
 
-      h2,
-      h3 {
-        margin-top: 10px;
-        color: #333;
-      }
+  a {
+    display: inline-block;
+    margin-top: 10px;
+    text-decoration: none;
+    background: #333;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+  }
 
-      a {
-        display: inline-block;
-        margin-top: 10px;
-        text-decoration: none;
-        background: #333;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 4px;
-      }
+  .info-split {
+    display: flex;
+    flex: 1;
+    height: 300px;
+    border-top: 1px solid #ccc;
+    margin-top: 10px;
+  }
 
-      .info-split {
-        display: flex;
-        flex: 1;
-        height: 300px;
-        border-top: 1px solid #ccc;
-        margin-top: 10px;
-      }
+  .info-box {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    max-height: 100%;
+  }
 
-      .info-box {
-        flex: 1;
-        padding: 10px;
-        overflow-y: auto;
-        max-height: 100%;
-      }
+  .info-box:not(:last-child) {
+    border-right: 1px solid #ccc;
+  }
 
-      .info-box:not(:last-child) {
-        border-right: 1px solid #ccc;
-      }
+  .info-box h3 {
+    text-align: center;
+    margin-top: 0;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
 
-      .info-box h3 {
-        text-align: center;
-        margin-top: 0;
-        background: white;
-        position: sticky;
-        top: 0;
-        z-index: 1;
-      }
+  .info-box div {
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
 
-      .info-box div {
-        margin-bottom: 6px;
-        font-size: 13px;
-      }
+  .chart-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
 
+  .chart-box {
+    width: 300px;
+    font-family: sans-serif;
+  }
 
+  .north-chart {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    border: 2px solid black;
+    clip-path: polygon(
+      50% 0%, 100% 50%, 50% 100%, 0% 50%
+    );
+    display: flex;
+    flex-wrap: wrap;
+  }
 
-      .navbar-layer a {
-  text-decoration: none;
-  color: #000; /* or a shade of gray */
-  padding: 0px 3px;
-  margin-right: 8px;
-  font-family: sans-serif;
-  font-size: 14px;
-  border: none;
-  background: none;
-  box-shadow: none;
-  border-radius: 0;
-}
+  .house {
+    width: 33.33%;
+    height: 33.33%;
+    border: 1px solid #999;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 12px;
+    position: relative;
+  }
 
-.navbar-layer a:hover {
-  text-decoration: none;
-  color: #007bff; /* Hover color */
-}
+  .house-number {
+    font-weight: bold;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: 10px;
+  }
 
-/*################################################################CHARTLAYOUT ATTEMPT01*/
+  .planets {
+    margin-top: 15px;
+  }
 
-.chart-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.chart-box {
-  width: 300px;
-  font-family: sans-serif;
-}
-
-.north-chart {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  border: 2px solid black;
-  clip-path: polygon(
-    50% 0%, 100% 50%, 50% 100%, 0% 50%
-  );
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.house {
-  width: 33.33%;
-  height: 33.33%;
-  border: 1px solid #999;
-  box-sizing: border-box;
-  text-align: center;
-  font-size: 12px;
-  position: relative;
-}
-
-.house-number {
-  font-weight: bold;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  font-size: 10px;
-}
-
-.planets {
-  margin-top: 15px;
-}
-
-.planet {
-  display: block;
-  color: darkred;
-}
+  .planet {
+    display: block;
+    color: darkred;
+  }
 
 
-    </style>
-  </head>
-  <body>
-    <!-- NAVBAR LAYER 1 -->
-    <div class="navbar top-bar">
-      <div class="navbar-layer">
-        <!-- <span>File</span>
-        <span>Edit</span>
-        <span>Modes</span>
-        <span>View</span>
-        <span>Preferences</span>
-        <span>Websites</span> -->
-        
-        <a href="#">File</a>
-    <a href="#">Edit</a>
-    <a href="#">Modes</a>
-    <a href="#">View</a>
-    <a href="#">Preferences</a>
-    <a href="#">Website</a>
+   body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+  }
 
+  /* .navbar {
+    background: linear-gradient(to bottom, #d3d3d3, #ffffff);
+    border-bottom: 1px solid #aaa;
+    padding: 0;
+    margin: 0;
+  } */
+
+   /* .navbar-layer {
+    display: flex;
+    gap: 10px;
+    padding: 1px 12px;
+    gap:6px;
+    align-items: center;
+    margin: 0;
+  }  */
+
+   /* .navbar-layer a {
+    text-decoration: none;
+    color: #000;
+    font-size: 14px;
+    padding: 0;
+    margin: 0;
+    line-height: 1.5; 
+    
+  }  
+
+  /* .navbar-layer a:hover {
+    color: #007bff;
+  } */ */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- LEFT SIDE: Charts -->
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+    {% for key, chart in divisionals.items() %}
+      <div style="width: 230px; text-align: center;">
+        <h4 style="margin: 8px 0;">{{ key }}</h4>
+        <svg width="230" height="230" style="border:1px solid #aaa;">
+          <rect x="0" y="0" width="230" height="230" fill="white" stroke="black"/>
+          <line x1="0" y1="0" x2="230" y2="230" stroke="black"/>
+          <line x1="230" y1="0" x2="0" y2="230" stroke="black"/>
+          <line x1="115" y1="0"   x2="230" y2="115" stroke="black"/>
+          <line x1="230" y1="115" x2="115" y2="230" stroke="black"/>
+          <line x1="115" y1="230" x2="0"   y2="115" stroke="black"/>
+          <line x1="0"   y1="115" x2="115" y2="0"   stroke="black"/>
+
+          {% for house in range(1, 13) %}
+            {% set content = chart[house] | join(', ') %}
+            <text x="{{ [100, 165, 165, 165, 115, 55, 10, 10, 10, 55, 115, 165][house-1] }}"
+                  y="{{ [15, 50, 115, 180, 220, 180, 115, 50, 15, 50, 115, 50][house-1] }}"
+                  font-size="9" fill="darkred">
+              {{ content }}
+            </text>
+          {% endfor %}
+        </svg>
       </div>
+    {% endfor %}
+  </div>
+
+  <!-- RIGHT SIDE: Planetary Info -->
+  <div class="planetary-info">
+    <h3>Planets</h3>
+    <div style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 10px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Planet</th>
+            <th>Zodiac</th>
+            <th>Degree</th>
+            <th>Nakshatra</th>
+            <th>Pada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for planet, pdata in data.planets.items() %}
+          <tr>
+            <td>
+              {{ planet }}
+              {% if pdata.karaka %}
+                <span style="color: darkred">({{ pdata.karaka }})</span>
+              {% endif %}
+            </td>
+            <td>{{ pdata.zodiac }}</td>
+            <td>{{ pdata.degree }}</td>
+            <td>{{ pdata.nakshatra }}</td>
+            <td>{{ pdata.pada }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
 
-    <!-- NAVBAR LAYER 2 -->
-    <div class="navbar mid-bar">
-      <div class="navbar-layer">
-    <a href="#">KP</a>
-    <a href="#">Kota Chakra</a>
-    <a href="#">Shool</a>
-    <a href="#">Sudarshana</a>
-    <a href="#">Hora</a>
-    <a href="#">Tajaka</a>
+    <div class="info-split">
+      <div class="info-box">
+        <h3>DrikPanchang</h3>
+        {% for key, value in left_table.items() %}
+          <div><b>{{ key }}</b>: {{ value }}</div>
+        {% endfor %}
+      </div>
+      <div class="info-box">
+        <h3>Right Info</h3>
+        {% for key, value in right_table.items() %}
+          <div><b>{{ key }}</b>: {{ value }}</div>
+        {% endfor %}
       </div>
     </div>
-
-    <!-- NAVBAR LAYER 3 -->
-    <!-- NAVBAR LAYER 3 -->
-<div class="navbar bottom-bar">
-  <div class="navbar-layer">
-    <a href="/home">Home</a>
-    <a href="/chakras">Chakras</a>
-    <a href="/dasha">Dasha</a>
-    <a href="/strength">Strength</a>
-    <a href="/transit">Transit</a>
-    <a href="/anatomy">Anatomy</a>
   </div>
 </div>
-
-
-
-
-<div class="container">
-
-
-
-
-<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-  {% for key, chart in divisionals.items() %}
-    <div style="width: 230px; text-align: center;">
-      <h4 style="margin: 8px 0;">{{ key }}</h4>
-      <svg width="230" height="230" style="border:1px solid #aaa;">
-        <!-- Outer square -->
-        <rect x="0" y="0" width="230" height="230" fill="white" stroke="black"/>
-
-        <!-- Diagonals -->
-        <line x1="0" y1="0" x2="230" y2="230" stroke="black"/>
-        <line x1="230" y1="0" x2="0" y2="230" stroke="black"/>
-
-        <!-- Center diamond -->
-        <line x1="115" y1="0"   x2="230" y2="115" stroke="black"/>
-        <line x1="230" y1="115" x2="115" y2="230" stroke="black"/>
-        <line x1="115" y1="230" x2="0"   y2="115" stroke="black"/>
-        <line x1="0"   y1="115" x2="115" y2="0"   stroke="black"/>
-
-        <!-- Planet placements -->
-        {% for house in range(1, 13) %}
-          {% set content = chart[house] | join(', ') %}
-          <text x="{{ [100, 165, 165, 165, 115, 55, 10, 10, 10, 55, 115, 165][house-1] }}"
-                y="{{ [15, 50, 115, 180, 220, 180, 115, 50, 15, 50, 115, 50][house-1] }}"
-                font-size="9" fill="darkred">
-            {{ content }}
-          </text>
-        {% endfor %}
-      </svg>
-    </div>
-  {% endfor %}
-</div>
-
-
-
-
-
-  
-
-      <!-- RIGHT: PLANETARY INFO -->
-      <div class="planetary-info">
-        <h3>Planets</h3>
-        <div style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 10px;">
-          <table>
-            <thead>
-              <tr>
-                <th>Planet</th>
-                <th>Zodiac</th>
-                <th>Degree</th>
-                <th>Nakshatra</th>
-                <th>Pada</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for planet, pdata in data.planets.items() %}
-              <tr>
-                <td>
-                  {{ planet }}
-                  {% if pdata.karaka %}
-                    <span style="color: darkred">({{ pdata.karaka }})</span>
-                  {% endif %}
-                </td>
-                <td>{{ pdata.zodiac }}</td>
-                <td>{{ pdata.degree }}</td>
-                <td>{{ pdata.nakshatra }}</td>
-                <td>{{ pdata.pada }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-
-        <!-- VERTICALLY SPLIT SCROLLABLE LEFT & RIGHT BOXES -->
-        <div class="info-split">
-          <div class="info-box">
-            <h3>DrikPanchang</h3>
-            {% for key, value in left_table.items() %}
-              <div><b>{{ key }}</b>: {{ value }}</div>
-            {% endfor %}
-          </div>
-          <div class="info-box">
-            <h3>Right Info</h3>
-            {% for key, value in right_table.items() %}
-              <div><b>{{ key }}</b>: {{ value }}</div>
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-    </div>
-  </body>
-</html>
+{% endblock %}
