@@ -12,6 +12,10 @@ import requests
 # Custom logic modules
 from logic.birth_form_logic import city_df, deg_str_to_decimal, zodiac_signs
 from logic.astronihar_api_calc import get_astro_data
+from logic.divisional import (
+    get_d1_chart, get_d3_chart, get_d6_chart,
+    get_d9_chart, get_d30_chart, get_d60_chart
+)
 
 
 
@@ -135,6 +139,9 @@ def submit():
                       (name, date_str, time_str, state, city, planet_data_id))
         conn.commit()
         conn.close()
+
+
+       
 
         return render_template('result.html', data=data, name=name,divisionals=data['divisionals'],
                                left_table=left_table, right_table=right_table)

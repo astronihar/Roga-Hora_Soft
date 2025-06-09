@@ -51,7 +51,7 @@
 
   .planetary-info {
     background-color: white;
-    padding: 15px;
+    padding: 20px;
     border: 1px solid #ccc;
     overflow: hidden;
     max-height: 85vh;
@@ -178,42 +178,13 @@
     background-color: #f5f5f5;
   }
 
-  /* .navbar {
-    background: linear-gradient(to bottom, #d3d3d3, #ffffff);
-    border-bottom: 1px solid #aaa;
-    padding: 0;
-    margin: 0;
-  } */
-
-   /* .navbar-layer {
-    display: flex;
-    gap: 10px;
-    padding: 1px 12px;
-    gap:6px;
-    align-items: center;
-    margin: 0;
-  }  */
-
-   /* .navbar-layer a {
-    text-decoration: none;
-    color: #000;
-    font-size: 14px;
-    padding: 0;
-    margin: 0;
-    line-height: 1.5; 
-    
-  }  
-
-  /* .navbar-layer a:hover {
-    color: #007bff;
-  } */ */
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
   <!-- LEFT SIDE: Charts -->
-  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+  <!-- <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
     {% for key, chart in divisionals.items() %}
       <div style="width: 230px; text-align: center;">
         <h4 style="margin: 8px 0;">{{ key }}</h4>
@@ -237,7 +208,7 @@
         </svg>
       </div>
     {% endfor %}
-  </div>
+  </div> -->
 
   <!-- RIGHT SIDE: Planetary Info -->
   <div class="planetary-info">
