@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from geopy.geocoders import Nominatim
-from logic.divisional import get_d3_chart, get_d6_chart, get_d9_chart, get_d30_chart, get_d60_chart
+from logic.divisional import  get_d3_chart, get_d6_chart, get_d9_chart, get_d30_chart, get_d60_chart
 import swisseph as swe
 import datetime
 import sqlite3
@@ -97,6 +97,7 @@ def get_astro_data(date_str, time_str, latitude, longitude):
         'planets': planet_data,
         'karakas': karakas,
         'divisionals': {
+            
             'D3': d3_chart,
             'D9': d9_chart,
             'D6': d6_chart,
