@@ -118,5 +118,38 @@
     </div>
   {% endfor %}
 
+
+
+
+
+
+  <hr style="margin-top: 40px;">
+
+<div class="chart-box" style="width: 1000px; margin: auto;">
+  <h4>Live Planetary Positions (Current Time)</h4>
+  <table border="1" cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+    <thead style="background-color: #e0e0e0;">
+      <tr>
+        <th>Planet</th>
+        <th>Zodiac</th>
+        <th>Degree</th>
+        <th>Nakshatra</th>
+        <th>Pada</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for planet, details in planet_table.items() %}
+      <tr>
+        <td>{{ planet }}</td>
+        <td>{{ details.zodiac }}</td>
+        <td>{{ details.degree | round(2) }}°</td>
+        <td>{{ details.nakshatra }}</td>
+        <td>{{ details.pada }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 </div>
 {% endblock %}

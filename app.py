@@ -264,9 +264,14 @@ def transit():
             continue
 
     return render_template(
+        # 'transit.html',
+        # divisionals={'D1': chart_live},
+        # fixed_chart={'D1': chart_moon}
         'transit.html',
         divisionals={'D1': chart_live},
-        fixed_chart={'D1': chart_moon}
+        fixed_chart={'D1': chart_moon},
+        planet_table=data['planets'],
+        ascendant=data['ascendant']
     )
 
 
