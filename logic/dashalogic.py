@@ -20,8 +20,6 @@ def get_dasha_start(moon_long):
 
 
 
-
-
 def calculate_dasha_levels(start_datetime, moon_long):
     # Step 1: Get initial Mahadasha and balance
     maha_lord, balance_years = get_dasha_start(moon_long)

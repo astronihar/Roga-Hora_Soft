@@ -14,13 +14,15 @@ from logic.birth_form_logic import city_df, deg_str_to_decimal, zodiac_signs
 from logic.astronihar_api_calc import get_astro_data
 
 
+
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Secure session
-swe.set_ephe_path('.')  # Swiss ephemeris files
+app.secret_key = os.urandom(24)  
+swe.set_ephe_path('.')  
 
 @app.route('/')
 def index():
     return render_template('birth_form.html')
+
 
 @app.route('/submit', methods=['POST'])
 def submit():
@@ -102,6 +104,8 @@ def submit():
             "Sun Sign:": f"{data['planets']['Sun']['zodiac']} ({data['planets']['Sun']['degree']})",
             "Karaka:": ', '.join([f"{k}: {v}" for k, v in data['karakas'].items()])
         }
+
+        session['moon_zodiac'] = data['planets']['Moon']['zodiac']
 
         right_table = {f"Right {i}": f"Info {i}" for i in range(1, 15)}
 
@@ -195,6 +199,7 @@ zodiac_list = [
 ]
 
 
+
 @app.route('/transit')
 def transit():
     try:
@@ -203,40 +208,67 @@ def transit():
     except Exception as e:
         return f"Error fetching planetary data: {e}"
 
+    zodiac_list = [
+        'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+        'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+    ]
+
+    ### ------------------ Chart 1: Live Ascendant ------------------ ###
     asc_zodiac = data['ascendant']['zodiac']
-    asc_index = zodiac_list.index(asc_zodiac)  # 0-based index
-    asc_house = 1  # Ascendant always goes into 1st house
-
-    # Build rotated zodiac chart so 1st house = ascendant's zodiac
+    asc_index = zodiac_list.index(asc_zodiac)
     rotated_zodiacs = zodiac_list[asc_index:] + zodiac_list[:asc_index]
-    rotated_zodiac_numbers = [(zodiac_list.index(z) + 1) for z in rotated_zodiacs]  # Zodiac number 1–12
+    rotated_zodiac_numbers = [(zodiac_list.index(z) + 1) for z in rotated_zodiacs]
 
-    # Create 12-house chart with zodiac numbers
-    chart = {}
+    chart_live = {}
     for i in range(1, 13):
-        chart[i] = {
-            'zodiac': rotated_zodiac_numbers[i - 1],  # 1-based zodiac number
+        chart_live[i] = {
+            'zodiac': rotated_zodiac_numbers[i - 1],
             'planets': []
         }
+    chart_live[1]['planets'].append("Ascendant")
 
-    # Add Ascendant
-    chart[1]['planets'].append("Ascendant")
-
-    # Add planets with zodiac number and degree
     for planet, info in data['planets'].items():
         try:
             planet_zodiac = info['zodiac']
             degree = round(info['degree'], 5)
             planet_zod_index = zodiac_list.index(planet_zodiac)
-
-            # Find which house this zodiac falls into from ascendant
             house_pos = (planet_zod_index - asc_index) % 12 + 1
-            zodiac_number = zodiac_list.index(planet_zodiac) + 1
-            chart[house_pos]['planets'].append(f"{planet}^{degree} ({zodiac_number})")
-        except Exception as e:
+            zodiac_number = planet_zod_index + 1
+            chart_live[house_pos]['planets'].append(f"{planet}^{degree} ({zodiac_number})")
+        except:
             continue
 
-    return render_template('transit.html', divisionals={'D1': chart})
+    ### ------------------ Chart 2: Fixed Ascendant = Moon Sign ------------------ ###
+    moon_zodiac = session.get('moon_zodiac', asc_zodiac)  # fallback to live if not present
+    moon_index = zodiac_list.index(moon_zodiac)
+    rotated_zodiacs_fixed = zodiac_list[moon_index:] + zodiac_list[:moon_index]
+    rotated_zodiac_numbers_fixed = [(zodiac_list.index(z) + 1) for z in rotated_zodiacs_fixed]
+
+    chart_moon = {}
+    for i in range(1, 13):
+        chart_moon[i] = {
+            'zodiac': rotated_zodiac_numbers_fixed[i - 1],
+            'planets': []
+        }
+    chart_moon[1]['planets'].append("Ascendant")  # fixed to Moon sign
+
+    for planet, info in data['planets'].items():
+        try:
+            planet_zodiac = info['zodiac']
+            degree = round(info['degree'], 5)
+            planet_zod_index = zodiac_list.index(planet_zodiac)
+            house_pos = (planet_zod_index - moon_index) % 12 + 1
+            zodiac_number = planet_zod_index + 1
+            chart_moon[house_pos]['planets'].append(f"{planet}^{degree} ({zodiac_number})")
+        except:
+            continue
+
+    return render_template(
+        'transit.html',
+        divisionals={'D1': chart_live},
+        fixed_chart={'D1': chart_moon}
+    )
+
 
 
 if __name__ == '__main__':
