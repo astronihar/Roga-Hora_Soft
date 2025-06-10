@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from geopy.geocoders import Nominatim
-from logic.divisional import get_d3_chart, get_d6_chart, get_d9_chart, get_d30_chart, get_d60_chart
+from logic.divisionalLogic import  get_d3_chart_from_d1, get_d6_chart, get_d9_chart, get_d30_chart, get_d60_chart
 import swisseph as swe
 import datetime
 import sqlite3

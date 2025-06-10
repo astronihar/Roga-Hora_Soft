@@ -12,16 +12,38 @@ import requests
 # Custom logic modules
 from logic.birth_form_logic import city_df, deg_str_to_decimal, zodiac_signs
 from logic.astronihar_api_calc import get_astro_data
-from logic.divisional import (
-    get_d1_chart, get_d3_chart, get_d6_chart,
+from logic.divisionalLogic import (get_absolute_degree,
+    get_d1_chart, get_d6_chart,
     get_d9_chart, get_d30_chart, get_d60_chart
 )
-
+from logic.divisionalLogic import get_d3_chart_from_d1
 
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  
 swe.set_ephe_path('.')  
+
+
+ZODIAC_SIGNS = [
+    "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+]
+
+def zodiac_index(zodiac_name):
+    try:
+        return ZODIAC_SIGNS.index(zodiac_name)
+    except ValueError:
+        raise Exception(f"Invalid zodiac sign: {zodiac_name}")
+
+def prepare_planets_raw(planets_data):
+    result = {}
+    for planet, val in planets_data.items():
+        sign_index = zodiac_index(val['zodiac'])
+        degree = val['degree']
+        result[planet] = get_absolute_degree(sign_index, degree)
+    return result
+
+
 
 @app.route('/')
 def index():
@@ -283,6 +305,40 @@ def transit():
     )
 
 
+@app.route('/charts')
+def show_charts():
+    url = "http://127.0.0.1:5001/api/astronihar/d1"
+    try:
+        res = requests.get(url)
+        data = res.json()
+    except Exception as e:
+        return f"⚠️ Error fetching API data: {e}"
+
+    asc_data = data.get('ascendant', {})
+    asc_sign_index = zodiac_index(asc_data.get('zodiac', ''))
+    asc_deg = get_absolute_degree(asc_sign_index, asc_data.get('degree', 0))
+
+    planets_raw = prepare_planets_raw(data.get('planets', {}))
+
+    # ✅✅✅ STORE D1 FOR REUSE
+    session['asc_deg'] = asc_deg
+    session['planets_raw'] = planets_raw
+
+    d1 = get_d1_chart(planets_raw, asc_deg)
+    # ✅✅✅ USE CUSTOM D3 LOGIC IMPORTED FROM dashaLogic.py
+    d3 = get_d3_chart_from_d1(planets_raw, asc_deg)
+    d6 = get_d6_chart(planets_raw, asc_deg)
+    d9 = get_d9_chart(planets_raw, asc_deg)
+    d30 = get_d30_chart(planets_raw, asc_deg)
+    d60 = get_d60_chart(planets_raw, asc_deg)
+
+    return render_template(
+        'partials/horoscope_charts.html',
+        d1=d1, d3=d3, d6=d6, d9=d9, d30=d30, d60=d60
+    )
+
+
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

@@ -1,35 +1,47 @@
-<style>
-  .container {
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-    flex-wrap: wrap;
-    gap: 20px;
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Horoscope Charts</title>
+  <style>
+    body {
+      background-color: #f9f9f9;
+      font-family: Arial, sans-serif;
+    }
 
-  .chart-box {
-    text-align: center;
-    background: white;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+    }
 
-  h4 {
-    margin: 5px;
-  }
+    .chart-box {
+      background: white;
+      padding: 10px 20px 20px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
 
-  text {
-    font-family: sans-serif;
-    font-size: 9px;
-  }
-</style>
+    .chart-box h4 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
 
-<div class="container">
-  {% for key, chart in charts.items() %}
+    text {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    {% for key, chart in {'D1': d1, 'D3': d3, 'D6': d6, 'D9': d9, 'D30': d30, 'D60': d60}.items() %}
     <div class="chart-box">
-      <h4>{{ key }}</h4>
-      <svg viewBox="-120 -120 240 240" width="500" height="500" style="border:1px solid #aaa;">
+      <h4>{{ key }} Chart</h4>
+      <svg viewBox="-120 -120 240 240" width="280" height="280">
+        <!-- Diamond Box -->
         <rect x="-100" y="-100" width="200" height="200" fill="white" stroke="black"/>
         <line x1="-100" y1="-100" x2="100" y2="100" stroke="black"/>
         <line x1="100" y1="-100" x2="-100" y2="100" stroke="black"/>
@@ -39,8 +51,8 @@
         <line x1="-100" y1="0" x2="0" y2="-100" stroke="black"/>
 
         {% set positions = {
-          1:  (0, 45), 2: (-50, 70), 3: (-80, 50), 4: (-60, 0),
-          5: (-70, -50), 6: (-50, -85), 7: (0, -40), 8: (60, -80),
+          1:  (0, 45), 2: (-50, 80), 3: (-80, 50), 4: (-60, 0),
+          5: (-80, -45), 6: (-50, -85), 7: (0, -40), 8: (60, -80),
           9: (90, -50), 10: (40, 0), 11: (80, 60), 12: (55, 80)
         } %}
 
@@ -48,19 +60,21 @@
           {% set pos = positions[house] %}
           {% set x = pos[0] %}
           {% set y = -pos[1] %}
-          {% set zodiac_number = chart[house]['zodiac'] %}
+          {% set zodiac = chart[house]['zodiac'] %}
           {% set planets = chart[house]['planets'] %}
 
           {% for i in range(planets|length) %}
-            <text x="{{ x }}" y="{{ y + i * 8 - 6 }}" font-size="8" fill="darkred" text-anchor="middle">
-              {{ planets[i] }}
-            </text>
+          <text x="{{ x }}" y="{{ y + i * 9 - 6 }}" font-size="8" fill="darkred" text-anchor="middle">
+            {{ planets[i] }}
+          </text>
           {% endfor %}
-          <text x="{{ x }}" y="{{ y + (planets|length) * 8 + 2 }}" font-size="7" fill="black" text-anchor="middle">
-            ({{ zodiac_number }})
+          <text x="{{ x }}" y="{{ y + (planets|length) * 9 + 4 }}" font-size="7" fill="black" text-anchor="middle">
+            {{ zodiac }}
           </text>
         {% endfor %}
       </svg>
     </div>
-  {% endfor %}
-</div>
+    {% endfor %}
+  </div>
+</body>
+</html>
