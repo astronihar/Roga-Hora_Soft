@@ -165,7 +165,7 @@ def submit():
 
        
 
-        return render_template('result.html', data=data, name=name,divisionals=data['divisionals'],
+        return render_template('result.html', data=data, name=name,
                                left_table=left_table, right_table=right_table)
     except Exception as e:
         return render_template('birth_form.html', error=str(e))
@@ -177,7 +177,7 @@ def home():
         left_table = json.loads(session['left_table'])
         right_table = json.loads(session['right_table'])
         name = session.get('name', 'Anonymous')
-        return render_template('result.html', data=data, name=name, left_table=left_table, right_table=right_table,divisionals=data.get('divisionals', {}))
+        return render_template('result.html', data=data, name=name, left_table=left_table, right_table=right_table)
     return "Please submit your birth details first.", 400
 
 @app.route('/anatomy')
@@ -297,7 +297,7 @@ def transit():
         # divisionals={'D1': chart_live},
         # fixed_chart={'D1': chart_moon}
         'transit.html',
-        divisionals={'D1': chart_live},
+        transit={'D1': chart_live},
         fixed_chart={'D1': chart_moon},
         planet_table=data['planets'],
         ascendant=data['ascendant'],

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from geopy.geocoders import Nominatim
-from logic.divisionalLogic import  get_d3_chart_from_d1, get_d6_chart, get_d9_chart, get_d30_chart, get_d60_chart
+# from logic.divisionalLogic import  get_d3_chart_from_d1, get_d6_chart, get_d9_chart, get_d30_chart, get_d60_chart
 import swisseph as swe
 import datetime
 import sqlite3
@@ -73,11 +73,11 @@ def get_astro_data(date_str, time_str, latitude, longitude):
     absolute_degrees['Ketu'] = ketu_deg
     asc_absolute_deg = asc_deg
 
-    d3_chart = get_d3_chart_from_d1(absolute_degrees, asc_absolute_deg)
-    d9_chart = get_d9_chart(absolute_degrees, asc_absolute_deg)
-    d6_chart = get_d6_chart(absolute_degrees, asc_absolute_deg)
-    d30_chart = get_d30_chart(absolute_degrees, asc_absolute_deg)
-    d60_chart = get_d60_chart(absolute_degrees, asc_absolute_deg)
+    # d3_chart = get_d3_chart_from_d1(absolute_degrees, asc_absolute_deg)
+    # d9_chart = get_d9_chart(absolute_degrees, asc_absolute_deg)
+    # d6_chart = get_d6_chart(absolute_degrees, asc_absolute_deg)
+    # d30_chart = get_d30_chart(absolute_degrees, asc_absolute_deg)
+    # d60_chart = get_d60_chart(absolute_degrees, asc_absolute_deg)
 
     karaka_order = ['AK', 'AmK', 'BK', 'MK', 'PuK', 'GnK', 'DK']
     karaka_candidates = {
@@ -96,12 +96,12 @@ def get_astro_data(date_str, time_str, latitude, longitude):
         'ascendant': asc_data,
         'planets': planet_data,
         'karakas': karakas,
-        'divisionals': {
+        # 'divisionals': {
             
-            'D3': d3_chart,
-            'D9': d9_chart,
-            'D6': d6_chart,
-            'D30': d30_chart,
-            'D60': d60_chart
-        }
+        #     'D3': d3_chart,
+        #     'D9': d9_chart,
+        #     'D6': d6_chart,
+        #     'D30': d30_chart,
+        #     'D60': d60_chart
+        # }
     }

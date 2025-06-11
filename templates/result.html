@@ -183,32 +183,7 @@
 
 {% block content %}
 <div class="container">
-  <!-- LEFT SIDE: Charts -->
-  <!-- <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-    {% for key, chart in divisionals.items() %}
-      <div style="width: 230px; text-align: center;">
-        <h4 style="margin: 8px 0;">{{ key }}</h4>
-        <svg width="230" height="230" style="border:1px solid #aaa;">
-          <rect x="0" y="0" width="230" height="230" fill="white" stroke="black"/>
-          <line x1="0" y1="0" x2="230" y2="230" stroke="black"/>
-          <line x1="230" y1="0" x2="0" y2="230" stroke="black"/>
-          <line x1="115" y1="0"   x2="230" y2="115" stroke="black"/>
-          <line x1="230" y1="115" x2="115" y2="230" stroke="black"/>
-          <line x1="115" y1="230" x2="0"   y2="115" stroke="black"/>
-          <line x1="0"   y1="115" x2="115" y2="0"   stroke="black"/>
-
-          {% for house in range(1, 13) %}
-            {% set content = chart[house] | join(', ') %}
-            <text x="{{ [100, 165, 165, 165, 115, 55, 10, 10, 10, 55, 115, 165][house-1] }}"
-                  y="{{ [15, 50, 115, 180, 220, 180, 115, 50, 15, 50, 115, 50][house-1] }}"
-                  font-size="9" fill="darkred">
-              {{ content }}
-            </text>
-          {% endfor %}
-        </svg>
-      </div>
-    {% endfor %}
-  </div> -->
+  
 
   <!-- RIGHT SIDE: Planetary Info -->
   <div class="planetary-info">

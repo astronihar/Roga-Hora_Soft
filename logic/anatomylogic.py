@@ -10,7 +10,7 @@ import re
 
 from logic.birth_form_logic import *
 from logic.astronihar_api_calc import *
-from logic.divisional import *
+# from logic.divisional import *
 from app import app
 
 
