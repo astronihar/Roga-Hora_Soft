@@ -35,13 +35,7 @@ def zodiac_index(zodiac_name):
     except ValueError:
         raise Exception(f"Invalid zodiac sign: {zodiac_name}")
 
-def prepare_planets_raw(planets_data):
-    result = {}
-    for planet, val in planets_data.items():
-        sign_index = zodiac_index(val['zodiac'])
-        degree = val['degree']
-        result[planet] = get_absolute_degree(sign_index, degree)
-    return result
+
 
 
 
@@ -140,6 +134,8 @@ def submit():
         session['left_table'] = json.dumps(left_table)
         session['right_table'] = json.dumps(right_table)
         session['name'] = name
+
+        session['dump_this_in_charts'] = data
 
         # DB saving
         planet_hash = hashlib.md5(json.dumps(data['planets'], sort_keys=True).encode()).hexdigest()
@@ -293,9 +289,6 @@ def transit():
             continue
 
     return render_template(
-        # 'transit.html',
-        # divisionals={'D1': chart_live},
-        # fixed_chart={'D1': chart_moon}
         'transit.html',
         transit={'D1': chart_live},
         fixed_chart={'D1': chart_moon},
@@ -305,27 +298,62 @@ def transit():
     )
 
 
+
+
+
+import re
+
+def dms_to_decimal(dms_str):
+    # Safely handle if it's already float-like
+    if isinstance(dms_str, (int, float)):
+        return float(dms_str)
+
+    # Extract numbers
+    match = re.findall(r"(\d+)", dms_str)
+    if len(match) == 3:
+        deg, mins, secs = map(int, match)
+        return deg + mins / 60 + secs / 3600
+    elif len(match) == 2:
+        deg, mins = map(int, match)
+        return deg + mins / 60
+    elif len(match) == 1:
+        return float(match[0])
+    else:
+        raise ValueError(f"Invalid DMS format: {dms_str}")
+    
+
+    
+
+def prepare_planets_raw(planets_data):
+    result = {}
+    for planet, pdata in planets_data.items():
+        sign_index = zodiac_index(pdata['zodiac'])
+        degree = dms_to_decimal(pdata['degree'])  # <== string to float here
+        result[planet] = get_absolute_degree(sign_index, degree)
+    return result
+
+
+
+
+
 @app.route('/charts')
 def show_charts():
-    url = "http://127.0.0.1:5001/api/astronihar/d1"
-    try:
-        res = requests.get(url)
-        data = res.json()
-    except Exception as e:
-        return f"⚠️ Error fetching API data: {e}"
+    data = session.get('dump_this_in_charts')
+    if not data:
+        return "⚠️ No data found in session. Please submit birth details first."
 
     asc_data = data.get('ascendant', {})
     asc_sign_index = zodiac_index(asc_data.get('zodiac', ''))
-    asc_deg = get_absolute_degree(asc_sign_index, asc_data.get('degree', 0))
+    
+    asc_deg_raw = asc_data.get('degree', '0')
+    asc_deg = get_absolute_degree(asc_sign_index, dms_to_decimal(asc_deg_raw))
 
     planets_raw = prepare_planets_raw(data.get('planets', {}))
 
-    # ✅✅✅ STORE D1 FOR REUSE
     session['asc_deg'] = asc_deg
     session['planets_raw'] = planets_raw
 
     d1 = get_d1_chart(planets_raw, asc_deg)
-    # ✅✅✅ USE CUSTOM D3 LOGIC IMPORTED FROM dashaLogic.py
     d3 = get_d3_chart_from_d1(planets_raw, asc_deg)
     d6 = get_d6_chart(planets_raw, asc_deg)
     d9 = get_d9_chart(planets_raw, asc_deg)
@@ -336,7 +364,6 @@ def show_charts():
         'partials/horoscope_charts.html',
         d1=d1, d3=d3, d6=d6, d9=d9, d30=d30, d60=d60
     )
-
 
 
 

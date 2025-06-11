@@ -8,8 +8,11 @@ def get_sign_and_degree(abs_deg):
     deg = abs_deg % 30
     return sign, deg
 
+# def get_absolute_degree(sign_index, degree_in_sign):
+#     return sign_index * 30 + degree_in_sign
+
 def get_absolute_degree(sign_index, degree_in_sign):
-    return sign_index * 30 + degree_in_sign
+    return float(sign_index) * 30 + float(degree_in_sign)
 
 def get_sign_and_degree(absolute_deg):
     sign = int(absolute_deg // 30)

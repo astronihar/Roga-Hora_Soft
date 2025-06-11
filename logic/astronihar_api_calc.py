@@ -96,12 +96,4 @@ def get_astro_data(date_str, time_str, latitude, longitude):
         'ascendant': asc_data,
         'planets': planet_data,
         'karakas': karakas,
-        # 'divisionals': {
-            
-        #     'D3': d3_chart,
-        #     'D9': d9_chart,
-        #     'D6': d6_chart,
-        #     'D30': d30_chart,
-        #     'D60': d60_chart
-        # }
     }
