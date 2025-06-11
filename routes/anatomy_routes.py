@@ -1,0 +1,34 @@
+from flask import Blueprint, Flask, render_template, request, jsonify, session
+from geopy.geocoders import Nominatim
+import swisseph as swe
+import datetime
+import sqlite3
+import hashlib
+import json
+import os
+import pandas as pd
+import requests
+
+# Custom logic modules
+from logic.birth_form_logic import city_df, deg_str_to_decimal, zodiac_signs
+from logic.astronihar_api_calc import get_astro_data
+from logic.divisionalLogic import (get_absolute_degree,
+    get_d1_chart, get_d6_chart,
+    get_d9_chart, get_d30_chart, get_d60_chart
+)
+from logic.divisionalLogic import get_d3_chart_from_d1
+
+
+
+anatomy_routes = Blueprint('anatomy_routes', __name__)
+
+
+@anatomy_routes.route('/anatomy')
+def anatomy():
+    if 'astro_data' in session:
+        data = json.loads(session['astro_data'])
+        left_table = json.loads(session['left_table'])
+        right_table = json.loads(session['right_table'])
+        name = session.get('name', 'Anonymous')
+        return render_template('anatomy.html', data=data, name=name, left_table=left_table, right_table=right_table)
+    return "No data found in session. Please submit your birth details first.", 400
