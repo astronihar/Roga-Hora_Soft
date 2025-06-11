@@ -263,7 +263,108 @@ def get_d30_chart(d1_planets_raw, d1_asc_deg):
 
 
 
-def get_d60_chart(planets_raw, asc_deg):
-    def transform(abs_deg):
-        return int(abs_deg * 2) % 12 + 1
-    return generic_chart(planets_raw, asc_deg, transform)
+# def get_d60_chart(planets_raw, asc_deg):
+#     def transform(abs_deg):
+#         return int(abs_deg * 2) % 12 + 1
+#     return generic_chart(planets_raw, asc_deg, transform)
+
+
+
+
+
+
+
+# def get_d60_chart(d1_planets_raw, d1_asc_deg):
+#     import math
+
+#     ZODIAC_SIGNS = [
+#         "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+#         "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+#     ]
+
+#     def get_sign_and_degree(abs_deg):
+#         sign = int(abs_deg // 30)  # 0 to 11
+#         deg_in_sign = abs_deg % 30
+#         return sign, deg_in_sign
+
+#     def shashtiamsa_transform(abs_deg):
+#         sign, deg = get_sign_and_degree(abs_deg)
+#         d60_index = int(deg * 2)  # Multiply by 2
+#         remainder = d60_index % 12
+#         d60_sign = (sign + remainder +1) % 12  # +1 as per BPHS logic
+#         return d60_sign  # 0-based zodiac index
+
+#     # Transform Ascendant first
+#     asc_sign_index = shashtiamsa_transform(d1_asc_deg)
+
+#     # Build the chart with transformed signs
+#     chart = {}
+#     for planet, abs_deg in d1_planets_raw.items():
+#         if planet != 'Ascendant':
+#             transformed_sign = shashtiamsa_transform(abs_deg)
+#             house = ((transformed_sign - asc_sign_index) % 12) + 1
+#             chart[planet] = house
+
+#     chart['Ascendant'] = 1  # Always 1st house
+
+#     # Final formatting with zodiac names
+#     rotated = {i: {'planets': [], 'zodiac': ''} for i in range(1, 13)}
+#     for body, house in chart.items():
+#         rotated[house]['planets'].append(body)
+
+#     for i in range(1, 13):
+#         zodiac_index = (asc_sign_index + i - 1) % 12
+#         rotated[i]['zodiac'] = ZODIAC_SIGNS[zodiac_index] + f" ({zodiac_index + 1})"
+
+#     return rotated
+
+
+
+
+
+
+
+
+
+def get_d60_chart(d1_planets_raw, d1_asc_deg):
+    ZODIAC_SIGNS = [
+        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
+    ]
+
+    def get_sign_and_degree(abs_deg):
+        sign = int(abs_deg // 30)  # 0–11
+        deg_in_sign = abs_deg % 30
+        return sign, deg_in_sign
+
+    def d60_shifted_sign(abs_deg):
+        sign, deg_in_sign = get_sign_and_degree(abs_deg)
+        d60_index = int(deg_in_sign * 2)
+        steps = (d60_index % 12 + 1) % 12
+        new_sign = (sign + steps) % 12
+        return new_sign-1  # zodiac index (0–11)
+
+    # Get D60 Ascendant sign using the logic
+    asc_sign_index = d60_shifted_sign(d1_asc_deg)
+
+    # Build the chart with transformed signs
+    chart = {}
+    for planet, abs_deg in d1_planets_raw.items():
+        if planet != 'Ascendant':
+            transformed_sign = d60_shifted_sign(abs_deg)
+            house = ((transformed_sign - asc_sign_index) % 12) + 1
+            chart[planet] = house
+
+    chart['Ascendant'] = 1  # Ascendant is always in 1st house
+
+    # Final formatting
+    rotated = {i: {'planets': [], 'zodiac': ''} for i in range(1, 13)}
+    for body, house in chart.items():
+        rotated[house]['planets'].append(body)
+
+    for i in range(1, 13):
+        zodiac_index = (asc_sign_index + i - 1) % 12
+        rotated[i]['zodiac'] = ZODIAC_SIGNS[zodiac_index] + f" ({zodiac_index + 1})"
+
+    return rotated
+
