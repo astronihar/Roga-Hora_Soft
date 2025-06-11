@@ -186,9 +186,14 @@ def anatomy():
         return render_template('anatomy.html', data=data, name=name, left_table=left_table, right_table=right_table)
     return "No data found in session. Please submit your birth details first.", 400
 
-@app.route('/chakras')
-def chakras():
-    return render_template('chakras.html')
+
+
+# @app.route('/chakras')
+# def chakras():
+#     return render_template('chakras.html')
+
+## FOR THE TEMPORARY BASIS I AM SHIFTING MY DIVISIONALS IN THIS, I WILL INCLUDE IT IN RESULT.HTML LATER
+## NOW I AM MAKING /charts as /chakras
 
 @app.route('/dasha')
 def dasha():
@@ -336,7 +341,7 @@ def prepare_planets_raw(planets_data):
 
 
 
-@app.route('/charts')
+@app.route('/chakras')
 def show_charts():
     data = session.get('dump_this_in_charts')
     if not data:

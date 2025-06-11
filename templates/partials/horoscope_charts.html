@@ -1,3 +1,5 @@
+<!-- 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,7 +51,7 @@
     <div class="chart-box">
       <h4>{{ key }} Chart</h4>
       <svg viewBox="-120 -120 240 240" width="280" height="280">
-        <!-- Diamond Box -->
+        
         <rect x="-100" y="-100" width="200" height="200" fill="white" stroke="black"/>
         <line x1="-100" y1="-100" x2="100" y2="100" stroke="black"/>
         <line x1="100" y1="-100" x2="-100" y2="100" stroke="black"/>
@@ -85,4 +87,103 @@
     {% endfor %}
   </div>
 </body>
-</html>
+</html> -->
+
+
+
+
+
+
+
+{% extends "base.html" %}
+
+{% block title %}Horoscope Divisional Charts{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .main-container {
+    display: flex;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .charts-panel {
+    display: grid;
+  grid-template-columns: repeat(2, 1fr);  /* 2 charts per row */
+  gap: 0;                                 /* 🔥 No spacing between boxes */
+  padding: 0;                             /* Remove padding if any */
+  margin: 0 auto 0 0;                     /* Align to extreme left */
+  width: fit-content;                     /* Shrinks to fit content */
+  }
+
+  .chart-box {
+    background: white;
+    padding: 4px;
+    border: 1px solid #ccc;
+    text-align: center;
+    width: 450px;
+  }
+
+  .chart-box h4 {
+    margin: 0;
+    font-size: 14px;
+    background-color: #eee;
+    padding: 4px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  svg {
+    display: block;
+    margin: auto;
+  }
+
+  text {
+    font-family: Arial, sans-serif;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+  <div class="charts-panel">
+    {% for key, chart in {'D1': d1, 'D3': d3, 'D6': d6, 'D9': d9, 'D30': d30, 'D60': d60}.items() %}
+    <div class="chart-box">
+      <h4>{{ key }} Chart</h4>
+      <svg viewBox="-120 -120 240 240" width="450" height="450">
+        <!-- Diamond Box -->
+        <rect x="-100" y="-100" width="200" height="200" fill="white" stroke="black"/>
+        <line x1="-100" y1="-100" x2="100" y2="100" stroke="black"/>
+        <line x1="100" y1="-100" x2="-100" y2="100" stroke="black"/>
+        <line x1="0" y1="-100" x2="100" y2="0" stroke="black"/>
+        <line x1="100" y1="0" x2="0" y2="100" stroke="black"/>
+        <line x1="0" y1="100" x2="-100" y2="0" stroke="black"/>
+        <line x1="-100" y1="0" x2="0" y2="-100" stroke="black"/>
+
+        {% set positions = {
+          1:  (0, 55), 2: (-50, 80), 3: (-80, 50), 4: (-60, 0),
+          5: (-80, -45), 6: (-50, -85), 7: (0, -40), 8: (60, -80),
+          9: (90, -50), 10: (40, 0), 11: (80, 50), 12: (55, 80)
+        } %}
+
+        {% for house in range(1, 13) %}
+          {% set pos = positions[house] %}
+          {% set x = pos[0] %}
+          {% set y = -pos[1] %}
+          {% set zodiac = chart[house]['zodiac'] %}
+          {% set planets = chart[house]['planets'] %}
+
+          {% for i in range(planets|length) %}
+          <text x="{{ x }}" y="{{ y + i * 9 - 6 }}" font-size="8" fill="darkred" text-anchor="middle">
+            {{ planets[i] }}
+          </text>
+          {% endfor %}
+          <text x="{{ x }}" y="{{ y + (planets|length) * 9 + 4 }}" font-size="7" fill="black" text-anchor="middle">
+            {{ zodiac }}
+          </text>
+        {% endfor %}
+      </svg>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
